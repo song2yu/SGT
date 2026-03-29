@@ -158,7 +158,7 @@ nav a:hover{color:var(--indigo)}
   width:100%;
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap:10px;
   padding:0;
   position:absolute;
   top:50%;
@@ -168,11 +168,13 @@ nav a:hover{color:var(--indigo)}
 .marquee-row{
   display:flex;
   width:max-content;
-  gap:14px;
+  gap:10px;
   will-change:transform;
 }
-.marquee-row.row-ltr{ animation: marquee-ltr 40s linear infinite; }
-.marquee-row.row-rtl{ animation: marquee-rtl 44s linear infinite; }
+.marquee-row.row-ltr { animation: marquee-ltr 38s linear infinite; }
+.marquee-row.row-rtl { animation: marquee-rtl 42s linear infinite; }
+.marquee-row.row-ltr2{ animation: marquee-ltr 50s linear infinite; }
+.marquee-row.row-rtl2{ animation: marquee-rtl 46s linear infinite; }
 
 @keyframes marquee-ltr{
   0%  { transform: translateX(0); }
@@ -188,19 +190,19 @@ nav a:hover{color:var(--indigo)}
 
 .marquee-item{
   flex-shrink:0;
-  width:260px;
-  height:170px;
-  border-radius:14px;
+  width:220px;
+  height:138px;
+  border-radius:12px;
   overflow:hidden;
   border:1.5px solid rgba(255,255,255,0.08);
-  box-shadow:0 4px 24px rgba(0,0,0,0.5);
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
   position:relative;
   transition:transform 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 .marquee-item:hover{
   transform:scale(1.06) translateY(-4px);
   border-color:rgba(99,102,241,0.6);
-  box-shadow:0 12px 40px rgba(99,102,241,0.35);
+  box-shadow:0 12px 36px rgba(99,102,241,0.35);
   z-index:5;
 }
 .marquee-item img{
@@ -489,15 +491,12 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 ════════════════════════════════════════════════════ -->
 <section id="gallery-showcase">
 
-  <!-- row 1: left to right (images 1–13, duplicated) -->
+  <!-- 4 rows alternating ltr/rtl -->
   <div class="marquee-wrapper">
-    <div class="marquee-row row-ltr" id="row1">
-      <!-- filled by JS -->
-    </div>
-    <!-- row 2: right to left (images 14–25 + some repeats, duplicated) -->
-    <div class="marquee-row row-rtl" id="row2">
-      <!-- filled by JS -->
-    </div>
+    <div class="marquee-row row-ltr"  id="row1"><!-- filled by JS --></div>
+    <div class="marquee-row row-rtl"  id="row2"><!-- filled by JS --></div>
+    <div class="marquee-row row-ltr2" id="row3"><!-- filled by JS --></div>
+    <div class="marquee-row row-rtl2" id="row4"><!-- filled by JS --></div>
   </div>
 
   <!-- dark vignette left/right so images fade nicely -->
@@ -917,29 +916,32 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 <script>
 /* ── BUILD MARQUEE ROWS ──────────────────────────────── */
 (function(){
-  // 25 images split: row1 = 1-13, row2 = 14-25
-  const row1Imgs = Array.from({length:13}, (_,i) => `assets/图片${i+1}.png`);
-  const row2Imgs = Array.from({length:12}, (_,i) => `assets/图片${i+14}.png`);
-  // pad row2 to be similar length
-  while(row2Imgs.length < row1Imgs.length) row2Imgs.push(row2Imgs[row2Imgs.length - row1Imgs.length % row2Imgs.length || 1]);
+  // 25 images, split into 4 groups of ~6-7 each, then shuffle between rows
+  const all = Array.from({length:25}, (_,i) => `assets/图片${i+1}.png`);
+  // row groups: slightly overlap so each row looks varied
+  const groups = [
+    all.slice(0, 7),           // 1-7
+    all.slice(6, 14),          // 7-14
+    all.slice(13, 20),         // 14-20
+    [...all.slice(19), ...all.slice(0,3)], // 20-25 + 1-3
+  ];
 
   function buildRow(el, imgs){
-    // duplicate for seamless loop
-    const all = [...imgs, ...imgs];
-    all.forEach(src => {
+    const full = [...imgs, ...imgs, ...imgs]; // triple for seamless wide screens
+    full.forEach(src => {
       const div = document.createElement('div');
       div.className = 'marquee-item';
       const img = document.createElement('img');
-      img.src = src;
-      img.alt = '';
-      img.loading = 'lazy';
+      img.src = src; img.alt = ''; img.loading = 'lazy';
       div.appendChild(img);
       el.appendChild(div);
     });
   }
 
-  buildRow(document.getElementById('row1'), row1Imgs);
-  buildRow(document.getElementById('row2'), row2Imgs);
+  buildRow(document.getElementById('row1'), groups[0]);
+  buildRow(document.getElementById('row2'), groups[1]);
+  buildRow(document.getElementById('row3'), groups[2]);
+  buildRow(document.getElementById('row4'), groups[3]);
 })();
 
 /* ── ANIMATED LIGHT-THEME BACKGROUND ────────────────── */
