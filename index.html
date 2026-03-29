@@ -173,7 +173,6 @@ nav a:hover{color:var(--indigo)}
 }
 .marquee-row.row-ltr { animation: marquee-ltr 60s linear infinite; }
 .marquee-row.row-rtl { animation: marquee-rtl 70s linear infinite; }
-.marquee-row.row-ltr2{ animation: marquee-ltr 65s linear infinite; }
 
 @keyframes marquee-ltr{
   0%  { transform: translateX(0); }
@@ -189,9 +188,9 @@ nav a:hover{color:var(--indigo)}
 
 .marquee-item{
   flex-shrink:0;
-  width:248px;
-  height:158px;
-  border-radius:13px;
+  width:260px;
+  height:170px;
+  border-radius:14px;
   overflow:hidden;
   border:1.5px solid rgba(255,255,255,0.08);
   box-shadow:0 4px 20px rgba(0,0,0,0.5);
@@ -490,11 +489,10 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 ════════════════════════════════════════════════════ -->
 <section id="gallery-showcase">
 
-  <!-- 3 rows alternating ltr/rtl/ltr -->
+  <!-- 2 rows, no overlapping images -->
   <div class="marquee-wrapper">
-    <div class="marquee-row row-ltr"  id="row1"><!-- filled by JS --></div>
-    <div class="marquee-row row-rtl"  id="row2"><!-- filled by JS --></div>
-    <div class="marquee-row row-ltr2" id="row3"><!-- filled by JS --></div>
+    <div class="marquee-row row-ltr" id="row1"><!-- filled by JS --></div>
+    <div class="marquee-row row-rtl" id="row2"><!-- filled by JS --></div>
   </div>
 
   <!-- dark vignette left/right so images fade nicely -->
@@ -915,15 +913,13 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 /* ── BUILD MARQUEE ROWS ──────────────────────────────── */
 (function(){
   const all = Array.from({length:25}, (_,i) => `assets/图片${i+1}.png`);
-  // 3 groups, slightly overlapping for visual variety
-  const groups = [
-    all.slice(0, 9),                        // 1–9
-    all.slice(8, 18),                       // 9–18
-    [...all.slice(17), ...all.slice(0, 4)], // 18–25 + 1–4
-  ];
+  // strict split: row1 = 1–13, row2 = 14–25 (zero overlap)
+  const row1 = all.slice(0, 13);
+  const row2 = all.slice(13);   // 12 images
 
   function buildRow(el, imgs){
-    const full = [...imgs, ...imgs, ...imgs]; // triple for seamless wide screens
+    // duplicate for seamless loop
+    const full = [...imgs, ...imgs];
     full.forEach(src => {
       const div = document.createElement('div');
       div.className = 'marquee-item';
@@ -934,9 +930,8 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
     });
   }
 
-  buildRow(document.getElementById('row1'), groups[0]);
-  buildRow(document.getElementById('row2'), groups[1]);
-  buildRow(document.getElementById('row3'), groups[2]);
+  buildRow(document.getElementById('row1'), row1);
+  buildRow(document.getElementById('row2'), row2);
 })();
 
 /* ── ANIMATED LIGHT-THEME BACKGROUND ────────────────── */
