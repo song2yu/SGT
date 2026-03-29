@@ -11,29 +11,23 @@
 /* ─── RESET ─────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* Lighter, more vibrant palette */
   --bg:        #f0f4ff;
   --bg2:       #e8eeff;
   --surface:   #ffffff;
   --surface2:  #f5f7ff;
   --border:    rgba(99,102,241,0.15);
   --border2:   rgba(99,102,241,0.30);
-
-  /* Vivid accents */
   --indigo:    #6366f1;
   --purple:    #8b5cf6;
   --sky:       #0ea5e9;
   --pink:      #ec4899;
   --emerald:   #10b981;
   --amber:     #f59e0b;
-
   --text:      #1e1b4b;
   --text2:     #6b7280;
   --text3:     #9ca3af;
-
   --glow-a:    rgba(99,102,241,0.25);
   --glow-b:    rgba(139,92,246,0.20);
-
   --radius:    16px;
   --font:      'Inter', system-ui, sans-serif;
   --mono:      'JetBrains Mono', monospace;
@@ -45,26 +39,19 @@ body{
   color:var(--text);
   line-height:1.7;
   overflow-x:hidden;
-  cursor:none; /* custom cursor */
+  cursor:none;
 }
 
 /* ─── CUSTOM CURSOR ──────────────────────────────────── */
 #cursor-brush{
-  position:fixed;
-  pointer-events:none;
-  z-index:9999;
-  transform:translate(-4px,-24px);
-  font-size:22px;
+  position:fixed;pointer-events:none;z-index:9999;
+  transform:translate(-4px,-24px);font-size:22px;
   filter:drop-shadow(0 2px 4px rgba(99,102,241,0.4));
   transition:transform 0.08s ease;
 }
-/* star particle */
 .star-particle{
-  position:fixed;
-  pointer-events:none;
-  z-index:9998;
-  border-radius:50%;
-  animation:starFall 0.8s ease-out forwards;
+  position:fixed;pointer-events:none;z-index:9998;
+  border-radius:50%;animation:starFall 0.8s ease-out forwards;
 }
 @keyframes starFall{
   0%  {opacity:1;transform:scale(1) translate(0,0)}
@@ -92,6 +79,146 @@ nav a:hover{color:var(--indigo)}
 
 /* ─── PAGE WRAPPER ───────────────────────────────────── */
 .page{position:relative;z-index:2}
+
+/* ════════════════════════════════════════════════════════
+   GALLERY SHOWCASE (FULL-SCREEN OPENING)
+════════════════════════════════════════════════════════ */
+#gallery-showcase{
+  position:relative;
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(180deg, #0d0d1a 0%, #1a1030 60%, #0f1525 100%);
+  z-index:2;
+}
+
+/* overlay gradient fading into the rest of the page */
+#gallery-showcase::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:220px;
+  background:linear-gradient(to bottom, transparent, var(--bg));
+  z-index:10;
+  pointer-events:none;
+}
+
+/* centered title overlay */
+.gallery-title-overlay{
+  position:absolute;
+  z-index:20;
+  text-align:center;
+  pointer-events:none;
+}
+.gallery-title-overlay .gtag{
+  display:inline-block;
+  padding:0.35rem 1.1rem;
+  background:rgba(99,102,241,0.25);
+  border:1px solid rgba(99,102,241,0.5);
+  border-radius:99px;
+  font-size:0.78rem;font-weight:700;letter-spacing:0.1em;
+  color:#a5b4fc;text-transform:uppercase;
+  margin-bottom:1.2rem;
+  backdrop-filter:blur(8px);
+}
+.gallery-title-overlay h2{
+  font-size:clamp(1.8rem,4vw,3rem);
+  font-weight:900;line-height:1.15;
+  color:#ffffff;
+  letter-spacing:-0.02em;
+  text-shadow:0 4px 32px rgba(0,0,0,0.6);
+  margin-bottom:0.6rem;
+}
+.gallery-title-overlay h2 span{
+  background:linear-gradient(135deg,#a5b4fc,#c084fc,#f9a8d4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.gallery-title-overlay p{
+  font-size:1rem;color:rgba(255,255,255,0.65);max-width:520px;
+}
+
+/* scroll hint arrow */
+.scroll-hint{
+  position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
+  z-index:20;display:flex;flex-direction:column;align-items:center;gap:0.4rem;
+  animation:bounce 2s infinite;
+  pointer-events:none;
+}
+.scroll-hint span{font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45)}
+.scroll-hint svg{width:20px;height:20px;stroke:rgba(255,255,255,0.4);fill:none;stroke-width:2}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ── Marquee rows ── */
+.marquee-wrapper{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  padding:0;
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+.marquee-row{
+  display:flex;
+  width:max-content;
+  gap:14px;
+  will-change:transform;
+}
+.marquee-row.row-ltr{ animation: marquee-ltr 40s linear infinite; }
+.marquee-row.row-rtl{ animation: marquee-rtl 44s linear infinite; }
+
+@keyframes marquee-ltr{
+  0%  { transform: translateX(0); }
+  100%{ transform: translateX(-50%); }
+}
+@keyframes marquee-rtl{
+  0%  { transform: translateX(-50%); }
+  100%{ transform: translateX(0); }
+}
+
+/* pause on hover */
+#gallery-showcase:hover .marquee-row{ animation-play-state: paused; }
+
+.marquee-item{
+  flex-shrink:0;
+  width:260px;
+  height:170px;
+  border-radius:14px;
+  overflow:hidden;
+  border:1.5px solid rgba(255,255,255,0.08);
+  box-shadow:0 4px 24px rgba(0,0,0,0.5);
+  position:relative;
+  transition:transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.marquee-item:hover{
+  transform:scale(1.06) translateY(-4px);
+  border-color:rgba(99,102,241,0.6);
+  box-shadow:0 12px 40px rgba(99,102,241,0.35);
+  z-index:5;
+}
+.marquee-item img{
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+  transition:transform 0.4s ease;
+}
+.marquee-item:hover img{ transform:scale(1.08); }
+
+/* dim overlay so center text reads well */
+.marquee-row::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:transparent;
+  pointer-events:none;
+}
 
 /* ─── HERO ───────────────────────────────────────────── */
 #hero{
@@ -133,7 +260,6 @@ h1.paper-title{
   margin:1rem auto 2rem;line-height:1.75;
   animation:fadeUp 0.7s 0.2s ease both;
 }
-
 .authors{
   display:flex;flex-wrap:wrap;justify-content:center;gap:0.3rem 0.7rem;
   max-width:680px;margin:0 auto 0.5rem;
@@ -141,10 +267,7 @@ h1.paper-title{
 }
 .author{font-size:0.95rem;font-weight:500;color:var(--text)}
 .author sup{color:var(--indigo);font-size:0.65em}
-.affiliations{
-  font-size:0.82rem;color:var(--text2);margin-bottom:2.5rem;
-  animation:fadeUp 0.7s 0.3s ease both;
-}
+.affiliations{font-size:0.82rem;color:var(--text2);margin-bottom:2.5rem;animation:fadeUp 0.7s 0.3s ease both;}
 
 .btn-row{
   display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center;
@@ -158,13 +281,10 @@ h1.paper-title{
 }
 .btn-primary{
   background:linear-gradient(135deg,var(--indigo),var(--purple));
-  color:#fff;
-  box-shadow:0 4px 16px rgba(99,102,241,0.35);
+  color:#fff;box-shadow:0 4px 16px rgba(99,102,241,0.35);
 }
 .btn-primary:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(99,102,241,0.45)}
-.btn-outline{
-  background:var(--surface);border-color:var(--border2);color:var(--indigo);
-}
+.btn-outline{background:var(--surface);border-color:var(--border2);color:var(--indigo);}
 .btn-outline:hover{
   background:linear-gradient(135deg,rgba(99,102,241,0.06),rgba(139,92,246,0.06));
   border-color:var(--indigo);transform:translateY(-3px);
@@ -172,23 +292,17 @@ h1.paper-title{
 }
 .btn svg{width:15px;height:15px;flex-shrink:0}
 
-/* hero stats */
 .hero-stats{
   display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;
   animation:fadeUp 0.7s 0.45s ease both;
 }
 .stat-chip{
   display:flex;flex-direction:column;align-items:center;
-  background:var(--surface);
-  border:1.5px solid var(--border);border-radius:20px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:20px;
   padding:1.1rem 1.8rem;min-width:120px;
-  box-shadow:0 2px 12px rgba(99,102,241,0.07);
-  transition:all 0.3s;
+  box-shadow:0 2px 12px rgba(99,102,241,0.07);transition:all 0.3s;
 }
-.stat-chip:hover{
-  border-color:var(--indigo);transform:translateY(-5px);
-  box-shadow:0 10px 30px rgba(99,102,241,0.15);
-}
+.stat-chip:hover{border-color:var(--indigo);transform:translateY(-5px);box-shadow:0 10px 30px rgba(99,102,241,0.15);}
 .stat-chip .num{
   font-size:1.9rem;font-weight:900;line-height:1.1;
   background:linear-gradient(135deg,var(--indigo),var(--purple));
@@ -199,23 +313,18 @@ h1.paper-title{
 /* ─── SECTIONS ───────────────────────────────────────── */
 section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
 .section-label{
-  font-size:0.72rem;font-weight:800;letter-spacing:0.12em;
-  text-transform:uppercase;
+  font-size:0.72rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
   background:linear-gradient(135deg,var(--indigo),var(--purple));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   margin-bottom:0.5rem;
 }
-.section-title{
-  font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;
-  letter-spacing:-0.015em;margin-bottom:0.9rem;color:var(--text);
-}
+.section-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;letter-spacing:-0.015em;margin-bottom:0.9rem;color:var(--text);}
 .section-desc{color:var(--text2);max-width:720px;font-size:1rem}
 
 /* ─── ABSTRACT ───────────────────────────────────────── */
 #abstract-wrap{background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);padding:5rem 1.5rem}
 .abstract-card{
-  max-width:860px;margin:0 auto;
-  background:var(--surface);
+  max-width:860px;margin:0 auto;background:var(--surface);
   border:1.5px solid var(--border2);border-radius:24px;
   padding:2.8rem 3.2rem;position:relative;overflow:hidden;
   box-shadow:0 4px 30px rgba(99,102,241,0.08);
@@ -225,19 +334,15 @@ section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
   background:linear-gradient(90deg,var(--indigo),var(--purple),var(--pink),var(--sky));
 }
 .abstract-card::after{
-  content:'';position:absolute;
-  bottom:-80px;right:-80px;width:220px;height:220px;
-  background:radial-gradient(circle,rgba(139,92,246,0.08),transparent 70%);
-  border-radius:50%;
+  content:'';position:absolute;bottom:-80px;right:-80px;width:220px;height:220px;
+  background:radial-gradient(circle,rgba(139,92,246,0.08),transparent 70%);border-radius:50%;
 }
 .abstract-card p{font-size:1.03rem;line-height:1.9;color:var(--text2)}
 .abstract-card p em{color:var(--indigo);font-style:normal;font-weight:700}
 .abstract-label{
-  font-size:0.72rem;font-weight:800;letter-spacing:0.12em;
-  text-transform:uppercase;
+  font-size:0.72rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
   background:linear-gradient(135deg,var(--indigo),var(--purple));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:0.8rem;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.8rem;
 }
 
 /* ─── CARDS ──────────────────────────────────────────── */
@@ -248,56 +353,32 @@ section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
   position:relative;overflow:hidden;transition:all 0.3s;
   box-shadow:0 2px 10px rgba(99,102,241,0.05);
 }
-.card:hover{
-  border-color:var(--indigo);transform:translateY(-5px);
-  box-shadow:0 14px 36px rgba(99,102,241,0.14);
-}
+.card:hover{border-color:var(--indigo);transform:translateY(-5px);box-shadow:0 14px 36px rgba(99,102,241,0.14);}
 .card-icon{font-size:2rem;margin-bottom:0.8rem}
 .card h3{font-size:1.02rem;font-weight:700;margin-bottom:0.5rem;color:var(--text)}
 .card p{font-size:0.88rem;color:var(--text2);line-height:1.65}
-.tag{
-  display:inline-block;margin-top:0.9rem;
-  padding:0.22rem 0.7rem;border-radius:6px;
-  font-size:0.74rem;font-weight:700;
-}
+.tag{display:inline-block;margin-top:0.9rem;padding:0.22rem 0.7rem;border-radius:6px;font-size:0.74rem;font-weight:700;}
 .tag.bad{background:rgba(239,68,68,0.09);color:#dc2626}
 .tag.ok{background:rgba(245,158,11,0.1);color:#d97706}
 .tag.best{background:rgba(16,185,129,0.09);color:var(--emerald)}
 
-/* ─── REAL FIGURE ────────────────────────────────────── */
+/* ─── FIGURE ─────────────────────────────────────────── */
 .fig-real{
-  margin-top:2rem;border-radius:var(--radius);
-  overflow:hidden;border:1.5px solid var(--border);
-  box-shadow:0 4px 20px rgba(99,102,241,0.07);
-  background:var(--surface);
+  margin-top:2rem;border-radius:var(--radius);overflow:hidden;
+  border:1.5px solid var(--border);box-shadow:0 4px 20px rgba(99,102,241,0.07);background:var(--surface);
 }
 .fig-real img{width:100%;display:block}
-.fig-caption{
-  padding:0.9rem 1.3rem;border-top:1px solid var(--border);
-  font-size:0.82rem;color:var(--text2);line-height:1.5;
-}
+.fig-caption{padding:0.9rem 1.3rem;border-top:1px solid var(--border);font-size:0.82rem;color:var(--text2);line-height:1.5;}
 .fig-caption strong{color:var(--text);font-weight:600}
-
 .fig-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2rem}
 @media(max-width:640px){.fig-row{grid-template-columns:1fr}}
 
-/* ─── PIPELINE STEPS ─────────────────────────────────── */
-.pipeline-strip{
-  display:flex;gap:0;align-items:stretch;margin-top:2rem;
-}
-.pipeline-step{
-  flex:1;background:var(--surface);
-  border:1.5px solid var(--border);padding:1.3rem 1.4rem;
-  position:relative;transition:all 0.3s;
-}
+/* ─── PIPELINE ───────────────────────────────────────── */
+.pipeline-strip{display:flex;gap:0;align-items:stretch;margin-top:2rem;}
+.pipeline-step{flex:1;background:var(--surface);border:1.5px solid var(--border);padding:1.3rem 1.4rem;position:relative;transition:all 0.3s;}
 .pipeline-step:first-child{border-radius:var(--radius) 0 0 var(--radius)}
 .pipeline-step:last-child{border-radius:0 var(--radius) var(--radius) 0}
-.pipeline-step:not(:last-child)::after{
-  content:'→';position:absolute;right:-14px;top:50%;
-  transform:translateY(-50%);
-  font-size:1rem;color:var(--indigo);z-index:2;
-  background:var(--bg);padding:0 2px;
-}
+.pipeline-step:not(:last-child)::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--indigo);z-index:2;background:var(--bg);padding:0 2px;}
 .pipeline-step:hover{background:var(--surface2);border-color:var(--indigo);z-index:1}
 .step-num{font-size:0.7rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.25rem}
 .step-title{font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:0.25rem}
@@ -306,9 +387,8 @@ section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
 /* ─── OBSERVATIONS ───────────────────────────────────── */
 .obs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-top:2.5rem}
 .obs-card{
-  background:var(--surface);border:1.5px solid var(--border);
-  border-radius:var(--radius);padding:2rem;
-  position:relative;overflow:hidden;transition:all 0.3s;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:2rem;position:relative;overflow:hidden;transition:all 0.3s;
   box-shadow:0 2px 10px rgba(99,102,241,0.05);
 }
 .obs-card:hover{border-color:var(--indigo);transform:translateY(-4px);box-shadow:0 12px 32px rgba(99,102,241,0.12)}
@@ -323,13 +403,7 @@ section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
 /* ─── TABLE ──────────────────────────────────────────── */
 .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1.5px solid var(--border);margin-top:1.5rem;box-shadow:0 2px 12px rgba(99,102,241,0.06)}
 table{width:100%;border-collapse:collapse;font-size:0.82rem}
-th{
-  background:linear-gradient(135deg,rgba(99,102,241,0.06),rgba(139,92,246,0.06));
-  padding:0.75rem 0.9rem;text-align:center;
-  font-size:0.71rem;font-weight:800;letter-spacing:0.04em;
-  text-transform:uppercase;color:var(--text2);
-  border-bottom:1.5px solid var(--border2);white-space:nowrap;
-}
+th{background:linear-gradient(135deg,rgba(99,102,241,0.06),rgba(139,92,246,0.06));padding:0.75rem 0.9rem;text-align:center;font-size:0.71rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:var(--text2);border-bottom:1.5px solid var(--border2);white-space:nowrap;}
 th.left{text-align:left}
 td{padding:0.65rem 0.9rem;text-align:center;border-bottom:1px solid rgba(99,102,241,0.06);color:var(--text2);white-space:nowrap}
 td.left{text-align:left;color:var(--text);font-weight:500}
@@ -337,84 +411,43 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(99,102,241,0.03)}
 tr.ours td{background:linear-gradient(90deg,rgba(99,102,241,0.05),rgba(139,92,246,0.04));color:var(--text)}
 tr.ours td.left{color:var(--indigo);font-weight:700}
-tr.section-header td{
-  background:linear-gradient(135deg,rgba(99,102,241,0.04),transparent);
-  color:var(--text2);font-size:0.7rem;font-weight:800;letter-spacing:0.06em;
-  text-transform:uppercase;padding:0.4rem 0.9rem;
-}
+tr.section-header td{background:linear-gradient(135deg,rgba(99,102,241,0.04),transparent);color:var(--text2);font-size:0.7rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:0.4rem 0.9rem;}
 .best{font-weight:800;color:var(--indigo)}
 .second{text-decoration:underline;text-decoration-style:dotted;color:var(--text)}
 
-/* ─── INSIGHT CARDS ──────────────────────────────────── */
+/* ─── INSIGHT ────────────────────────────────────────── */
 .insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;margin-top:2rem}
-.insight-card{
-  background:var(--surface);border:1.5px solid var(--border);
-  border-radius:var(--radius);padding:1.6rem;
-  display:flex;flex-direction:column;gap:0.4rem;
-  transition:all 0.3s;box-shadow:0 2px 10px rgba(99,102,241,0.05);
-}
+.insight-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.6rem;display:flex;flex-direction:column;gap:0.4rem;transition:all 0.3s;box-shadow:0 2px 10px rgba(99,102,241,0.05);}
 .insight-card:hover{border-color:var(--indigo);transform:translateY(-3px);box-shadow:0 10px 28px rgba(99,102,241,0.12)}
-.insight-val{
-  font-size:2.3rem;font-weight:900;line-height:1;
-  background:linear-gradient(135deg,var(--indigo),var(--purple));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
+.insight-val{font-size:2.3rem;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--indigo),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .insight-label{font-size:0.83rem;color:var(--text);font-weight:600;line-height:1.4}
 .insight-sub{font-size:0.74rem;color:var(--text2);font-style:italic}
 
-/* ─── DATA BARS ──────────────────────────────────────── */
+/* ─── PERF BARS ──────────────────────────────────────── */
 .perf-bars{display:flex;flex-direction:column;gap:0.9rem}
 .perf-bar-row{display:flex;flex-direction:column;gap:0.28rem}
 .perf-bar-label{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text2)}
 .perf-bar-label span:last-child{font-weight:700;color:var(--text)}
 .perf-bar-track{height:7px;background:var(--bg2);border-radius:99px;overflow:hidden}
-.perf-bar-fill{
-  height:100%;border-radius:99px;
-  background:linear-gradient(90deg,var(--indigo),var(--purple));
-  transform:scaleX(0);transform-origin:left;
-  transition:transform 1.3s cubic-bezier(0.16,1,0.3,1);
-}
+.perf-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--indigo),var(--purple));transform:scaleX(0);transform-origin:left;transition:transform 1.3s cubic-bezier(0.16,1,0.3,1);}
 .perf-bar-fill.animated{transform:scaleX(1)}
 
 /* ─── BIBTEX ─────────────────────────────────────────── */
-.bibtex-block{
-  background:var(--surface2);border:1.5px solid var(--border2);
-  border-radius:var(--radius);padding:1.8rem;
-  margin-top:1.5rem;position:relative;
-  box-shadow:0 2px 12px rgba(99,102,241,0.06);
-}
-.bibtex-block::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;
-  background:linear-gradient(90deg,var(--indigo),var(--purple),var(--pink));
-}
+.bibtex-block{background:var(--surface2);border:1.5px solid var(--border2);border-radius:var(--radius);padding:1.8rem;margin-top:1.5rem;position:relative;box-shadow:0 2px 12px rgba(99,102,241,0.06);}
+.bibtex-block::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;background:linear-gradient(90deg,var(--indigo),var(--purple),var(--pink));}
 pre{font-family:var(--mono);font-size:0.82rem;line-height:1.75;color:var(--text2);overflow-x:auto;white-space:pre}
-.copy-btn{
-  position:absolute;top:1.2rem;right:1.2rem;
-  background:linear-gradient(135deg,var(--indigo),var(--purple));
-  color:#fff;border:none;border-radius:8px;
-  padding:0.3rem 0.8rem;font-size:0.75rem;font-weight:700;
-  cursor:none;transition:all 0.2s;
-  box-shadow:0 2px 8px rgba(99,102,241,0.25);
-}
+.copy-btn{position:absolute;top:1.2rem;right:1.2rem;background:linear-gradient(135deg,var(--indigo),var(--purple));color:#fff;border:none;border-radius:8px;padding:0.3rem 0.8rem;font-size:0.75rem;font-weight:700;cursor:none;transition:all 0.2s;box-shadow:0 2px 8px rgba(99,102,241,0.25);}
 .copy-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(99,102,241,0.35)}
 
 /* ─── DIVIDER ────────────────────────────────────────── */
-.section-divider{
-  height:1px;max-width:800px;margin:0 auto;
-  background:linear-gradient(90deg,transparent,var(--border2),transparent);
-}
+.section-divider{height:1px;max-width:800px;margin:0 auto;background:linear-gradient(90deg,transparent,var(--border2),transparent);}
 
 /* ─── REVEAL ─────────────────────────────────────────── */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
 
 /* ─── FOOTER ─────────────────────────────────────────── */
-footer{
-  padding:3rem 2rem;text-align:center;
-  border-top:1px solid var(--border2);
-  color:var(--text2);font-size:0.82rem;
-  background:var(--bg2);
-}
+footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);color:var(--text2);font-size:0.82rem;background:var(--bg2);}
 
 /* ─── ANIMATIONS ─────────────────────────────────────── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
@@ -427,6 +460,7 @@ footer{
   .abstract-card{padding:1.6rem}
   nav{gap:0.8rem}
   nav a{font-size:0.72rem}
+  .marquee-item{width:180px;height:120px;}
 }
   </style>
 </head>
@@ -449,6 +483,41 @@ footer{
 </nav>
 
 <div class="page">
+
+<!-- ════════════════════════════════════════════════════
+     GALLERY SHOWCASE — full-screen opening
+════════════════════════════════════════════════════ -->
+<section id="gallery-showcase">
+
+  <!-- row 1: left to right (images 1–13, duplicated) -->
+  <div class="marquee-wrapper">
+    <div class="marquee-row row-ltr" id="row1">
+      <!-- filled by JS -->
+    </div>
+    <!-- row 2: right to left (images 14–25 + some repeats, duplicated) -->
+    <div class="marquee-row row-rtl" id="row2">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- dark vignette left/right so images fade nicely -->
+  <div style="position:absolute;inset:0;z-index:5;pointer-events:none;
+    background:linear-gradient(to right, #0d0d1a 0%, transparent 12%, transparent 88%, #0d0d1a 100%);"></div>
+
+  <!-- center title -->
+  <div class="gallery-title-overlay">
+    <div class="gtag">✦ SGT · ECCV 2026</div>
+    <h2>Generated by <span>SGT</span></h2>
+    <p>Semantic Generative Tuning enables high-fidelity, structurally coherent image synthesis</p>
+  </div>
+
+  <!-- scroll hint -->
+  <div class="scroll-hint">
+    <span>scroll</span>
+    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+  </div>
+
+</section>
 
 <!-- ═══════════════════════════════════════════════════ -->
 <!--  HERO                                              -->
@@ -597,8 +666,6 @@ footer{
     SGT formulates image segmentation as a generative post-training objective within UMMs.
     The framework is architecture-agnostic and validated across two fundamentally different UMM designs.
   </p>
-
-  <!-- Pipeline overview figure (pipe.png = simplified version, pipeline.png = detailed) -->
   <div class="fig-real" style="margin-top:2rem;">
     <img src="assets/pipeline.png" alt="Figure 2: SGT Training Pipeline Overview"/>
     <div class="fig-caption">
@@ -608,8 +675,6 @@ footer{
       SGT explicitly adopts <em>image segmentation</em> as its generative objective.
     </div>
   </div>
-
-  <!-- Simplified architecture diagram -->
   <div class="fig-real" style="margin-top:1.5rem;">
     <img src="assets/pipe.png" alt="Figure 2b: SGT Architecture Diagram"/>
     <div class="fig-caption">
@@ -618,8 +683,6 @@ footer{
       SGT adds segmentation as an additional generative objective alongside standard VQA SFT data.
     </div>
   </div>
-
-  <!-- Four-step pipeline -->
   <div class="pipeline-strip" style="margin-top:2.5rem;">
     <div class="pipeline-step">
       <div class="step-num">Step 01</div>
@@ -642,8 +705,6 @@ footer{
       <div class="step-desc">Improved feature linear separability + optimized visual-textual attention → consistent gains on both understanding and generation.</div>
     </div>
   </div>
-
-  <!-- Two architectures -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2rem;">
     <div class="card">
       <div class="card-icon">🏗️</div>
@@ -669,7 +730,6 @@ footer{
   <div class="section-label">Key Findings</div>
   <div class="section-title">Three Empirical Observations</div>
   <p class="section-desc">Our hierarchical task study across BAGEL and OmniGen2 reveals consistent patterns guiding SGT's design.</p>
-
   <div class="obs-grid">
     <div class="obs-card">
       <div class="obs-num">Observation 01</div>
@@ -687,20 +747,14 @@ footer{
       <p>Regardless of semantic granularity, all proxy tasks consistently improve generative spatial fidelity — especially for position-aware tasks. Reconstructing visual structure forces accurate spatial layouts, naturally boosting positional prompt adherence.</p>
     </div>
   </div>
-
-  <!-- Empirical charts from paper: und6dim = Fig3a understanding, gen6dim = Fig3b generation -->
   <div class="fig-row">
     <div class="fig-real" style="margin-top:0;">
       <img src="assets/und6dim.png" alt="Figure 3a: Understanding capability gains"/>
-      <div class="fig-caption">
-        <strong>Fig. 3a:</strong> Understanding capability gains across proxy task levels on BAGEL and OmniGen2. Segmentation (high-level) consistently yields the largest gains.
-      </div>
+      <div class="fig-caption"><strong>Fig. 3a:</strong> Understanding capability gains across proxy task levels on BAGEL and OmniGen2. Segmentation (high-level) consistently yields the largest gains.</div>
     </div>
     <div class="fig-real" style="margin-top:0;">
       <img src="assets/gen6dim.png" alt="Figure 3b: Generation capability gains"/>
-      <div class="fig-caption">
-        <strong>Fig. 3b:</strong> Generation capability gains. All proxy tasks improve position-aware generation; segmentation leads overall.
-      </div>
+      <div class="fig-caption"><strong>Fig. 3b:</strong> Generation capability gains. All proxy tasks improve position-aware generation; segmentation leads overall.</div>
     </div>
   </div>
 </section>
@@ -714,15 +768,12 @@ footer{
   <div class="section-label">Experiments</div>
   <div class="section-title">Comparison with State-of-the-Art</div>
   <p class="section-desc">SGT-BAGEL and SGT-Gen2 consistently outperform their baselines and surpass competitive UMMs across understanding and generation benchmarks.</p>
-
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th class="left" rowspan="2">Model</th>
-          <th rowspan="2">Params</th>
-          <th colspan="6">Visual Understanding</th>
-          <th colspan="2">Visual Generation</th>
+          <th class="left" rowspan="2">Model</th><th rowspan="2">Params</th>
+          <th colspan="6">Visual Understanding</th><th colspan="2">Visual Generation</th>
         </tr>
         <tr>
           <th>MMVP↑</th><th>VSR↑</th><th>Hallu.↑</th>
@@ -738,28 +789,17 @@ footer{
         <tr><td class="left">UniMRG</td><td>3.6B</td><td>74.67</td><td>73.90</td><td>64.56</td><td>–</td><td>66.01</td><td>–</td><td>55.8</td><td>✗</td></tr>
         <tr><td class="left">OpenUni</td><td>2B</td><td>71.67</td><td>66.69</td><td>60.88</td><td>–</td><td>65.23</td><td>–</td><td>51.0</td><td>–</td></tr>
         <tr><td class="left">OmniGen2</td><td>3B+4B</td><td>65.00</td><td>77.52</td><td>62.35</td><td>55.07</td><td>64.41</td><td>63.50</td><td>76.0</td><td>6.63</td></tr>
-        <tr class="ours">
-          <td class="left">✦ SGT-Gen2 (Ours)</td><td>3B+4B</td>
-          <td class="best">68.33</td><td class="best">78.85</td><td class="best">64.25</td>
-          <td class="best">57.07</td><td class="best">65.10</td><td class="best">64.00</td>
-          <td class="best">79.1</td><td class="best">6.83</td>
-        </tr>
+        <tr class="ours"><td class="left">✦ SGT-Gen2 (Ours)</td><td>3B+4B</td><td class="best">68.33</td><td class="best">78.85</td><td class="best">64.25</td><td class="best">57.07</td><td class="best">65.10</td><td class="best">64.00</td><td class="best">79.1</td><td class="best">6.83</td></tr>
         <tr class="section-header"><td colspan="10">Large-scale Models (≥ 7B)</td></tr>
         <tr><td class="left">Chameleon</td><td>7B</td><td>50.00</td><td>–</td><td>31.13</td><td>28.93</td><td>39.00</td><td>21.90</td><td>39.0</td><td>✗</td></tr>
         <tr><td class="left">Janus-Pro</td><td>7B</td><td>63.00</td><td>71.03</td><td>60.15</td><td>46.80</td><td>41.83</td><td>42.60</td><td>80.0</td><td>✗</td></tr>
         <tr><td class="left">UniWorld-v1</td><td>7B+12B</td><td>77.67</td><td>83.34</td><td>68.35</td><td>63.90</td><td>67.58</td><td>68.20</td><td>84.0</td><td>4.85</td></tr>
         <tr><td class="left">BAGEL</td><td>7B+7B</td><td>83.00</td><td>80.45</td><td>68.34</td><td>67.46</td><td>71.26</td><td>73.10</td><td>88.0</td><td>6.64</td></tr>
-        <tr class="ours">
-          <td class="left">✦ SGT-BAGEL (Ours)</td><td>7B+7B</td>
-          <td class="best">83.33</td><td class="best">81.54</td><td class="best">70.24</td>
-          <td class="best">68.33</td><td class="best">72.42</td><td class="best">73.90</td>
-          <td class="best">90.0</td><td class="best">6.94</td>
-        </tr>
+        <tr class="ours"><td class="left">✦ SGT-BAGEL (Ours)</td><td>7B+7B</td><td class="best">83.33</td><td class="best">81.54</td><td class="best">70.24</td><td class="best">68.33</td><td class="best">72.42</td><td class="best">73.90</td><td class="best">90.0</td><td class="best">6.94</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Ablation -->
   <div style="margin-top:3.5rem;" class="reveal">
     <div class="section-label">Ablation Study</div>
     <div class="section-title" style="font-size:1.5rem;">Effect of Proxy Task Choice</div>
@@ -779,21 +819,13 @@ footer{
           <tr><td class="left">+ SFT only</td><td>74.61</td><td>82.67</td><td>80.69</td><td>49.34</td><td>86.77</td><td>67.92</td><td>77.18</td><td>6.49</td></tr>
           <tr><td class="left">+ SFT + Edge</td><td>74.56</td><td>83.67</td><td>80.83</td><td>49.51</td><td>86.48</td><td>68.66</td><td>79.96</td><td>6.72</td></tr>
           <tr><td class="left">+ SFT + Reconstruction</td><td>75.23</td><td>83.33</td><td>80.83</td><td>50.59</td><td>87.98</td><td>68.03</td><td>80.82</td><td>6.75</td></tr>
-          <tr class="ours">
-            <td class="left">✦ + SFT + SGT (Ours)</td>
-            <td class="best">79.23</td><td class="best">83.33</td><td class="best">81.54</td><td class="best">50.18</td>
-            <td class="best">88.32</td><td class="best">70.24</td><td class="best">80.95</td><td class="best">6.94</td>
-          </tr>
+          <tr class="ours"><td class="left">✦ + SFT + SGT (Ours)</td><td class="best">79.23</td><td class="best">83.33</td><td class="best">81.54</td><td class="best">50.18</td><td class="best">88.32</td><td class="best">70.24</td><td class="best">80.95</td><td class="best">6.94</td></tr>
           <tr class="section-header"><td colspan="9">Base: OmniGen2</td></tr>
           <tr><td class="left">OmniGen2 (Base)</td><td>65.94</td><td>65.00</td><td>77.52</td><td>43.29</td><td>85.97</td><td>62.35</td><td>76.58</td><td>6.63</td></tr>
           <tr><td class="left">+ SFT only</td><td>65.99</td><td>66.00</td><td>77.61</td><td>44.37</td><td>86.25</td><td>64.35</td><td>74.54</td><td>6.32</td></tr>
           <tr><td class="left">+ SFT + Edge</td><td>66.67</td><td>65.33</td><td>77.99</td><td>45.51</td><td>86.10</td><td>63.72</td><td>77.45</td><td>6.79</td></tr>
           <tr><td class="left">+ SFT + Reconstruction</td><td>66.71</td><td>66.33</td><td>78.18</td><td>45.41</td><td>85.92</td><td>65.19</td><td>77.53</td><td>6.81</td></tr>
-          <tr class="ours">
-            <td class="left">✦ + SFT + SGT (Ours)</td>
-            <td class="best">66.91</td><td class="best">68.33</td><td class="best">78.85</td><td class="best">45.37</td>
-            <td class="best">87.29</td><td class="best">64.25</td><td class="best">78.86</td><td class="best">6.83</td>
-          </tr>
+          <tr class="ours"><td class="left">✦ + SFT + SGT (Ours)</td><td class="best">66.91</td><td class="best">68.33</td><td class="best">78.85</td><td class="best">45.37</td><td class="best">87.29</td><td class="best">64.25</td><td class="best">78.86</td><td class="best">6.83</td></tr>
         </tbody>
       </table>
     </div>
@@ -809,60 +841,19 @@ footer{
   <div class="section-label">Mechanistic Analysis</div>
   <div class="section-title">Why Does SGT Work?</div>
   <p class="section-desc">We probe feature distributions and attention dynamics to uncover the mechanisms behind SGT's improvements.</p>
-
   <div class="insight-grid">
-    <div class="insight-card">
-      <div class="insight-val">+6.1%</div>
-      <div class="insight-label">CV-Bench gain during training with 2:1 Seg:VQA ratio</div>
-      <div class="insight-sub">Accelerated convergence vs. SFT-only baseline</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-val">2:1</div>
-      <div class="insight-label">Optimal Seg:VQA intra-batch ratio</div>
-      <div class="insight-sub">Validated on both BAGEL and OmniGen2</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-val">+3.3%</div>
-      <div class="insight-label">BAGEL aggregate gain scaling from 2k → 100k seg samples</div>
-      <div class="insight-sub">Monotonic improvement with data scale</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-val">L25–27</div>
-      <div class="insight-label">Deep layers where attention reallocation is most pronounced</div>
-      <div class="insight-sub">Segmentation shifts attention most effectively to visual tokens</div>
-    </div>
+    <div class="insight-card"><div class="insight-val">+6.1%</div><div class="insight-label">CV-Bench gain during training with 2:1 Seg:VQA ratio</div><div class="insight-sub">Accelerated convergence vs. SFT-only baseline</div></div>
+    <div class="insight-card"><div class="insight-val">2:1</div><div class="insight-label">Optimal Seg:VQA intra-batch ratio</div><div class="insight-sub">Validated on both BAGEL and OmniGen2</div></div>
+    <div class="insight-card"><div class="insight-val">+3.3%</div><div class="insight-label">BAGEL aggregate gain scaling from 2k → 100k seg samples</div><div class="insight-sub">Monotonic improvement with data scale</div></div>
+    <div class="insight-card"><div class="insight-val">L25–27</div><div class="insight-label">Deep layers where attention reallocation is most pronounced</div><div class="insight-sub">Segmentation shifts attention most effectively to visual tokens</div></div>
   </div>
-
-  <!-- tSNE feature space (tsne.png = Fig7) + Piano visual examples (Piano.png = Fig7 illustration) -->
   <div class="fig-row" style="margin-top:2rem;">
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/Piano.png" alt="Figure 7: Visually confusable piano categories"/>
-      <div class="fig-caption">
-        <strong>Fig. 7 (left):</strong> Visually confusable categories — Grand Piano vs. Upright Piano — used to evaluate feature discriminability.
-      </div>
-    </div>
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/tsne.png" alt="Figure 7: tSNE feature space visualization"/>
-      <div class="fig-caption">
-        <strong>Fig. 7 (right):</strong> t-SNE visualization. BAGEL baseline yields entangled features; SGT learns highly discriminative embeddings with clear class separation.
-      </div>
-    </div>
+    <div class="fig-real" style="margin-top:0;"><img src="assets/Piano.png" alt="Figure 7: Visually confusable piano categories"/><div class="fig-caption"><strong>Fig. 7 (left):</strong> Visually confusable categories — Grand Piano vs. Upright Piano — used to evaluate feature discriminability.</div></div>
+    <div class="fig-real" style="margin-top:0;"><img src="assets/tsne.png" alt="Figure 7: tSNE feature space visualization"/><div class="fig-caption"><strong>Fig. 7 (right):</strong> t-SNE visualization. BAGEL baseline yields entangled features; SGT learns highly discriminative embeddings with clear class separation.</div></div>
   </div>
-
-  <!-- Attention heatmap (vl_attn.png = Fig8a layer-wise % change) + attention allocation (ug_attn.png = Fig8b bar) -->
   <div class="fig-row" style="margin-top:1.5rem;">
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/vl_attn.png" alt="Figure 8a: Vision-language attention allocation across layers"/>
-      <div class="fig-caption">
-        <strong>Fig. 8a:</strong> Vision-language attention allocation change (%) across layers. Segmentation reallocates attention most strongly at deep layers (L25–L27), reflecting structural semantic influence.
-      </div>
-    </div>
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/ug_attn.png" alt="Figure 8b: Understanding attention allocation"/>
-      <div class="fig-caption">
-        <strong>Fig. 8b:</strong> Attention allocation to object/color/position/other categories. SGT increases visual token attention while reducing distractions.
-      </div>
-    </div>
+    <div class="fig-real" style="margin-top:0;"><img src="assets/vl_attn.png" alt="Figure 8a: Vision-language attention allocation across layers"/><div class="fig-caption"><strong>Fig. 8a:</strong> Vision-language attention allocation change (%) across layers. Segmentation reallocates attention most strongly at deep layers (L25–L27), reflecting structural semantic influence.</div></div>
+    <div class="fig-real" style="margin-top:0;"><img src="assets/ug_attn.png" alt="Figure 8b: Understanding attention allocation"/><div class="fig-caption"><strong>Fig. 8b:</strong> Attention allocation to object/color/position/other categories. SGT increases visual token attention while reducing distractions.</div></div>
   </div>
 </section>
 
@@ -875,52 +866,19 @@ footer{
   <div class="section-label">Training Data</div>
   <div class="section-title">Data Recipe &amp; Scalability</div>
   <p class="section-desc">SGT is scalable — performance improves monotonically with more segmentation data, and a 2:1 Seg:VQA batch ratio is consistently optimal.</p>
-
-  <!-- ratio.png = Fig5a, scaling.png = Fig5b -->
   <div class="fig-row">
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/ratio.png" alt="Figure 5a: Optimal Seg-to-VQA ratio"/>
-      <div class="fig-caption">
-        <strong>Fig. 5a:</strong> Ablation on segmentation-to-VQA ratio. Both BAGEL and OmniGen2 achieve optimal performance at a <em>2:1 ratio</em> (segmentation:VQA).
-      </div>
-    </div>
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/scaling.png" alt="Figure 5b: Scalability curve"/>
-      <div class="fig-caption">
-        <strong>Fig. 5b:</strong> Data scalability. Performance improves consistently as segmentation data scales from 2k to 100k samples (BAGEL: +3.3%, OmniGen2: +2.0%).
-      </div>
-    </div>
+    <div class="fig-real" style="margin-top:0;"><img src="assets/ratio.png" alt="Figure 5a: Optimal Seg-to-VQA ratio"/><div class="fig-caption"><strong>Fig. 5a:</strong> Ablation on segmentation-to-VQA ratio. Both BAGEL and OmniGen2 achieve optimal performance at a <em>2:1 ratio</em> (segmentation:VQA).</div></div>
+    <div class="fig-real" style="margin-top:0;"><img src="assets/scaling.png" alt="Figure 5b: Scalability curve"/><div class="fig-caption"><strong>Fig. 5b:</strong> Data scalability. Performance improves consistently as segmentation data scales from 2k to 100k samples (BAGEL: +3.3%, OmniGen2: +2.0%).</div></div>
   </div>
-
-  <!-- Training dynamics: gen6dim is actually Fig6 learning curves? Let me use the bar chart -->
-  <!-- Actually ratio/scaling are Fig5a/5b; we don't have a dedicated Fig6 curve image, so use data stats card -->
   <div style="margin-top:2rem;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:2rem;box-shadow:0 2px 12px rgba(99,102,241,0.06);">
     <div style="font-size:0.75rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;background:linear-gradient(135deg,var(--indigo),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.2rem;">Training Data Breakdown (Total ≈ 691k)</div>
     <div class="perf-bars">
-      <div class="perf-bar-row">
-        <div class="perf-bar-label"><span>SGT — Segmentation (SAM)</span><span>190k</span></div>
-        <div class="perf-bar-track"><div class="perf-bar-fill" style="width:27.5%"></div></div>
-      </div>
-      <div class="perf-bar-row">
-        <div class="perf-bar-label"><span>General VQA</span><span>180k</span></div>
-        <div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--purple),var(--sky));width:26%"></div></div>
-      </div>
-      <div class="perf-bar-row">
-        <div class="perf-bar-label"><span>Doc / Chart / Screen</span><span>103k</span></div>
-        <div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--sky),var(--emerald));width:15%"></div></div>
-      </div>
-      <div class="perf-bar-row">
-        <div class="perf-bar-label"><span>Math / Reasoning</span><span>101k</span></div>
-        <div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--emerald),var(--amber));width:14.6%"></div></div>
-      </div>
-      <div class="perf-bar-row">
-        <div class="perf-bar-label"><span>Language</span><span>72k</span></div>
-        <div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--amber),var(--pink));width:10.4%"></div></div>
-      </div>
-      <div class="perf-bar-row">
-        <div class="perf-bar-label"><span>General OCR</span><span>45k</span></div>
-        <div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--pink),var(--indigo));width:6.5%"></div></div>
-      </div>
+      <div class="perf-bar-row"><div class="perf-bar-label"><span>SGT — Segmentation (SAM)</span><span>190k</span></div><div class="perf-bar-track"><div class="perf-bar-fill" style="width:27.5%"></div></div></div>
+      <div class="perf-bar-row"><div class="perf-bar-label"><span>General VQA</span><span>180k</span></div><div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--purple),var(--sky));width:26%"></div></div></div>
+      <div class="perf-bar-row"><div class="perf-bar-label"><span>Doc / Chart / Screen</span><span>103k</span></div><div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--sky),var(--emerald));width:15%"></div></div></div>
+      <div class="perf-bar-row"><div class="perf-bar-label"><span>Math / Reasoning</span><span>101k</span></div><div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--emerald),var(--amber));width:14.6%"></div></div></div>
+      <div class="perf-bar-row"><div class="perf-bar-label"><span>Language</span><span>72k</span></div><div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--amber),var(--pink));width:10.4%"></div></div></div>
+      <div class="perf-bar-row"><div class="perf-bar-label"><span>General OCR</span><span>45k</span></div><div class="perf-bar-track"><div class="perf-bar-fill" style="background:linear-gradient(90deg,var(--pink),var(--indigo));width:6.5%"></div></div></div>
     </div>
   </div>
 </section>
@@ -957,185 +915,128 @@ footer{
 <!--  SCRIPTS                                            -->
 <!-- ════════════════════════════════════════════════════ -->
 <script>
-/* ──────────────────────────────────────────────────────
-   ANIMATED LIGHT-THEME BACKGROUND
-────────────────────────────────────────────────────── */
+/* ── BUILD MARQUEE ROWS ──────────────────────────────── */
+(function(){
+  // 25 images split: row1 = 1-13, row2 = 14-25
+  const row1Imgs = Array.from({length:13}, (_,i) => `assets/图片${i+1}.png`);
+  const row2Imgs = Array.from({length:12}, (_,i) => `assets/图片${i+14}.png`);
+  // pad row2 to be similar length
+  while(row2Imgs.length < row1Imgs.length) row2Imgs.push(row2Imgs[row2Imgs.length - row1Imgs.length % row2Imgs.length || 1]);
+
+  function buildRow(el, imgs){
+    // duplicate for seamless loop
+    const all = [...imgs, ...imgs];
+    all.forEach(src => {
+      const div = document.createElement('div');
+      div.className = 'marquee-item';
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '';
+      img.loading = 'lazy';
+      div.appendChild(img);
+      el.appendChild(div);
+    });
+  }
+
+  buildRow(document.getElementById('row1'), row1Imgs);
+  buildRow(document.getElementById('row2'), row2Imgs);
+})();
+
+/* ── ANIMATED LIGHT-THEME BACKGROUND ────────────────── */
 (function(){
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas.getContext('2d');
   let W, H;
-
-  function resize(){
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // Floating blobs
-  const blobs = Array.from({length: 5}, () => ({
-    x: Math.random() * W, y: Math.random() * H,
-    r: 200 + Math.random() * 200,
-    vx: (Math.random() - 0.5) * 0.3,
-    vy: (Math.random() - 0.5) * 0.3,
-    hue: [240, 270, 200, 310, 160][Math.floor(Math.random()*5)],
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize); resize();
+  const blobs = Array.from({length:5}, () => ({
+    x:Math.random()*W, y:Math.random()*H, r:200+Math.random()*200,
+    vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3,
+    hue:[240,270,200,310,160][Math.floor(Math.random()*5)],
   }));
-
-  // Small sparkle dots
-  const dots = Array.from({length: 40}, () => ({
-    x: Math.random() * W, y: Math.random() * H,
-    r: Math.random() * 2 + 0.5,
-    vx: (Math.random() - 0.5) * 0.2,
-    vy: (Math.random() - 0.5) * 0.2,
-    alpha: Math.random() * 0.3 + 0.05,
-    hue: [240, 270, 310][Math.floor(Math.random()*3)],
+  const dots = Array.from({length:40}, () => ({
+    x:Math.random()*W, y:Math.random()*H, r:Math.random()*2+0.5,
+    vx:(Math.random()-0.5)*0.2, vy:(Math.random()-0.5)*0.2,
+    alpha:Math.random()*0.3+0.05, hue:[240,270,310][Math.floor(Math.random()*3)],
   }));
-
   function draw(){
-    ctx.clearRect(0, 0, W, H);
-
-    // Blobs
+    ctx.clearRect(0,0,W,H);
     blobs.forEach(b => {
-      b.x += b.vx; b.y += b.vy;
-      if (b.x < -b.r) b.x = W + b.r;
-      if (b.x > W + b.r) b.x = -b.r;
-      if (b.y < -b.r) b.y = H + b.r;
-      if (b.y > H + b.r) b.y = -b.r;
-
-      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-      g.addColorStop(0, `hsla(${b.hue},80%,70%,0.12)`);
-      g.addColorStop(1, 'transparent');
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.fillStyle = g;
-      ctx.fill();
+      b.x+=b.vx; b.y+=b.vy;
+      if(b.x<-b.r)b.x=W+b.r; if(b.x>W+b.r)b.x=-b.r;
+      if(b.y<-b.r)b.y=H+b.r; if(b.y>H+b.r)b.y=-b.r;
+      const g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
+      g.addColorStop(0,`hsla(${b.hue},80%,70%,0.12)`); g.addColorStop(1,'transparent');
+      ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
     });
-
-    // Dots
     dots.forEach(d => {
-      d.x += d.vx; d.y += d.vy;
-      if (d.x < 0) d.x = W; if (d.x > W) d.x = 0;
-      if (d.y < 0) d.y = H; if (d.y > H) d.y = 0;
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${d.hue},75%,65%,${d.alpha})`;
-      ctx.fill();
+      d.x+=d.vx; d.y+=d.vy;
+      if(d.x<0)d.x=W; if(d.x>W)d.x=0; if(d.y<0)d.y=H; if(d.y>H)d.y=0;
+      ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${d.hue},75%,65%,${d.alpha})`; ctx.fill();
     });
-
     requestAnimationFrame(draw);
   }
   draw();
 })();
 
-/* ──────────────────────────────────────────────────────
-   BRUSH CURSOR + STAR SPARKLES
-────────────────────────────────────────────────────── */
+/* ── BRUSH CURSOR + STARS ────────────────────────────── */
 (function(){
   const brush = document.getElementById('cursor-brush');
-  let mx = 0, my = 0;
-
   document.addEventListener('mousemove', (e) => {
-    mx = e.clientX; my = e.clientY;
-    brush.style.left = mx + 'px';
-    brush.style.top  = my + 'px';
+    brush.style.left=e.clientX+'px'; brush.style.top=e.clientY+'px';
     spawnStars(e.clientX, e.clientY);
   });
-
-  const starShapes = ['✦','✧','⋆','★','·','✸','✺'];
-  const starColors = ['#6366f1','#8b5cf6','#ec4899','#0ea5e9','#10b981','#f59e0b'];
-
-  let lastSpawn = 0;
-  function spawnStars(x, y){
-    const now = Date.now();
-    if (now - lastSpawn < 40) return; // throttle ~25/s
-    lastSpawn = now;
-
-    const count = 2 + Math.floor(Math.random() * 2);
-    for (let i = 0; i < count; i++){
-      const el = document.createElement('span');
-      el.className = 'star-particle';
-      el.textContent = starShapes[Math.floor(Math.random() * starShapes.length)];
-
-      const size = 10 + Math.random() * 12;
-      const angle = Math.random() * Math.PI * 2;
-      const dist  = 20 + Math.random() * 40;
-      const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist - 20; // slight upward drift
-
-      el.style.cssText = `
-        left: ${x - size/2}px;
-        top:  ${y - size/2}px;
-        width: ${size}px; height: ${size}px;
-        font-size: ${size}px; line-height: 1;
-        color: ${starColors[Math.floor(Math.random() * starColors.length)]};
-        --dx: ${dx}px; --dy: ${dy}px;
-        animation-duration: ${0.6 + Math.random() * 0.4}s;
-        text-align: center;
-      `;
+  const starShapes=['✦','✧','⋆','★','·','✸','✺'];
+  const starColors=['#6366f1','#8b5cf6','#ec4899','#0ea5e9','#10b981','#f59e0b'];
+  let lastSpawn=0;
+  function spawnStars(x,y){
+    const now=Date.now(); if(now-lastSpawn<40)return; lastSpawn=now;
+    for(let i=0;i<3;i++){
+      const el=document.createElement('span');
+      el.className='star-particle';
+      el.textContent=starShapes[Math.floor(Math.random()*starShapes.length)];
+      const size=10+Math.random()*12;
+      const angle=Math.random()*Math.PI*2;
+      const dist=20+Math.random()*40;
+      el.style.cssText=`left:${x-size/2}px;top:${y-size/2}px;width:${size}px;height:${size}px;font-size:${size}px;line-height:1;color:${starColors[Math.floor(Math.random()*starColors.length)]};--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist-20}px;animation-duration:${0.6+Math.random()*0.4}s;text-align:center;`;
       document.body.appendChild(el);
-      setTimeout(() => el.remove(), 900);
+      setTimeout(()=>el.remove(),900);
     }
   }
 })();
 
-/* ──────────────────────────────────────────────────────
-   SCROLL REVEAL
-────────────────────────────────────────────────────── */
+/* ── SCROLL REVEAL ───────────────────────────────────── */
 (function(){
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
-    });
-  }, {threshold: 0.1});
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 })();
 
-/* ──────────────────────────────────────────────────────
-   PROGRESS BAR ANIMATION
-────────────────────────────────────────────────────── */
+/* ── PROGRESS BAR ANIMATION ──────────────────────────── */
 (function(){
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting){ e.target.classList.add('animated'); io.unobserve(e.target); }
-    });
-  }, {threshold: 0.3});
-  document.querySelectorAll('.perf-bar-fill').forEach(b => io.observe(b));
+  const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('animated');io.unobserve(e.target);}});},{threshold:0.3});
+  document.querySelectorAll('.perf-bar-fill').forEach(b=>io.observe(b));
 })();
 
-/* ──────────────────────────────────────────────────────
-   ANIMATED COUNTER
-────────────────────────────────────────────────────── */
+/* ── ANIMATED COUNTER ────────────────────────────────── */
 (function(){
-  document.querySelectorAll('.num[data-target]').forEach(el => {
-    const target = parseFloat(el.dataset.target);
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        let start = 0;
-        const step = (ts) => {
-          if (!start) start = ts;
-          const prog = Math.min((ts - start) / 1400, 1);
-          const ease = 1 - Math.pow(1 - prog, 3);
-          el.textContent = (target * ease).toFixed(2) + '%';
-          if (prog < 1) requestAnimationFrame(step);
-          else el.textContent = '+' + target.toFixed(2) + '%';
-        };
-        requestAnimationFrame(step);
-        io.unobserve(e.target);
-      });
-    }, {threshold: 0.5});
+  document.querySelectorAll('.num[data-target]').forEach(el=>{
+    const target=parseFloat(el.dataset.target);
+    const io=new IntersectionObserver(entries=>{entries.forEach(e=>{
+      if(!e.isIntersecting)return;
+      let start=0;
+      const step=ts=>{if(!start)start=ts;const prog=Math.min((ts-start)/1400,1);const ease=1-Math.pow(1-prog,3);el.textContent=(target*ease).toFixed(2)+'%';if(prog<1)requestAnimationFrame(step);else el.textContent='+'+target.toFixed(2)+'%';};
+      requestAnimationFrame(step); io.unobserve(e.target);
+    });},{threshold:0.5});
     io.observe(el);
   });
 })();
 
-/* ──────────────────────────────────────────────────────
-   COPY BIBTEX
-────────────────────────────────────────────────────── */
+/* ── COPY BIBTEX ─────────────────────────────────────── */
 function copyBibtex(){
-  navigator.clipboard.writeText(document.getElementById('bibtex-text').textContent).then(() => {
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied ✓';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
+  navigator.clipboard.writeText(document.getElementById('bibtex-text').textContent).then(()=>{
+    const btn=document.querySelector('.copy-btn');
+    btn.textContent='Copied ✓';setTimeout(()=>btn.textContent='Copy',2000);
   });
 }
 </script>
