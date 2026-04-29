@@ -45,7 +45,45 @@ SGT takes a different approach: use **high-level semantic segmentation** as the 
 3. **Spatial fidelity improves universally** — All proxy levels improve positional generation; segmentation leads overall.
 
 ---
+## Usage
+```bash
+git clone https://github.com/song2yu/SGT.git
+cd SGT
+```
+### for BAGEL Installation
+```
+bash setup_bagel.sh
+cd BAGEL && source activate_env.sh
+bash shells/download_ckpt.sh
+```
 
+### for BAGEL Inference
+```bash
+# for vision2text
+# for text2image
+# for image2image
+```
+### for BAGEL Training
+Modify the paths of llava-ov and sam in `/efs/brucessyu/SGT/BAGEL/data/dataset_info.py`.
+```bash
+bash shells/train_sgt.sh
+```
+
+
+---
+## Download Datasets
+Here we sample a subset of LLaVA-OneVision, you may also choose to download the full dataset.
+Modify `OUTPUT_DIR` in `dowload_ov.py` to your desired location.
+```bash
+# download LLaVA-OneVision subset
+python dowload_ov.py
+# download sam subset || Chinese users can use --use-mirror
+python download_sam.py --target-dir ./data/SAM-SGT --use-mirror
+```
+
+
+
+---
 ## Project Page
 
 👉 **[https://song2yu.github.io/sgt-project-page/](https://song2yu.github.io/sgt-project-page/)**
