@@ -55,11 +55,13 @@ cd SGT
 bash setup_bagel.sh
 cd BAGEL && source activate_env.sh
 bash shells/download_ckpt.sh
+bash shells/download_bagel.sh
 ```
 
 ### for BAGEL Inference
 ```bash
 # for vision2text
+PYTHONPATH=. python scripts/infer_understanding.py
 # for text2image
 # for image2image
 ```
