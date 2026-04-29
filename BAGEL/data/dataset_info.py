@@ -130,9 +130,9 @@ DATASET_INFO = {
     },
     'sam190k': {
         'sam190k': {
-            'data_dir': 'data/sam-qa/file_names/sam_selection/',
+            'data_dir': 'data/SAM-SGT/file_names/sam_selection/',
             'num_files': 1,
-            'jsonl_path': 'data/sam-qa/file_names/sam_190k_new.txt',
+            'jsonl_path': 'data/SAM-SGT/file_names/sam_190k_new.txt',
             'cache_dir': 'data/coco/train2017/',
         },
     },
