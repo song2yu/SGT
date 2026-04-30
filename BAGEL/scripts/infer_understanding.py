@@ -130,9 +130,8 @@ else:
 # Thanks @onion-liu: https://github.com/ByteDance-Seed/Bagel/pull/8
 model = load_checkpoint_and_dispatch(
     model,
-    checkpoint=os.path.join('ckpt/BAGEL-SGT/ema.safetensors'),
+    checkpoint=os.path.join('ckpt/SGT-BAGEL/ema.safetensors'),
     # checkpoint=os.path.join(model_path, 'ema.safetensors'), # official
-    # checkpoint=os.path.join('ckpt/BAGEL-RecA/model_bf16.safetensors'), # ckpt/BAGEL-RecA/model_bf16.safetensors
     device_map="auto",
     offload_buffers=False,
     dtype=torch.bfloat16,
@@ -176,8 +175,8 @@ inference_hyper=dict(
 )
 
 
-image = Image.open('assets/mmvp/9.png')
-prompt = 'What is the letter in the exact center of the image? Answer with only one letter.G' # None
+image = Image.open('../assets/pipe.png')
+prompt = 'Describe this image.' # None
 
 print(prompt)
 print('-'*10)

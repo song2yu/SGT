@@ -158,7 +158,7 @@ else:
 
 model = load_checkpoint_and_dispatch(
     model,
-    checkpoint=os.path.join('ckpt/BAGEL-SGT/ema.safetensors'),
+    checkpoint=os.path.join('ckpt/SGT-BAGEL/ema.safetensors'),
     device_map="auto",
     offload_buffers=False,
     dtype=torch.bfloat16,

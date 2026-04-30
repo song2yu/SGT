@@ -129,7 +129,7 @@ else:
 # Thanks @onion-liu: https://github.com/ByteDance-Seed/Bagel/pull/8
 model = load_checkpoint_and_dispatch(
     model,
-    checkpoint=os.path.join('ckpt/BAGEL-SGT/ema.safetensors'),
+    checkpoint=os.path.join('ckpt/SGT-BAGEL/ema.safetensors'),
     device_map="auto",
     offload_buffers=False,
     dtype=torch.bfloat16,
@@ -177,9 +177,9 @@ inference_hyper=dict(
 )
 
 
-image = Image.open('assets/bird.png')
-output_image_path = 'outputs/edit/reca2000_bird.png'
-prompt = 'Please remove the middle one of the three bird figurines in the bottom left corner.' # None
+image = Image.open('../assets/图片3.png') 
+output_image_path = 'puppy.png'
+prompt = 'Replace the elephant with a puppy.' # None
 
 
 print(prompt)

@@ -1159,9 +1159,9 @@ class Bagel(PreTrainedModel):
         if self.use_moe:
             extra_inputs = {"mode": "und"}
 
-        if past_key_values.value_cache[0] is not None and True:
-            attn_map = self.get_gqa_attention_map(packed_text_embedding, self.language_model.model.layers[0].self_attn.q_proj, past_key_values.key_cache[0][1:1370], past_key_values.value_cache[0][1:1370])
-            print(attn_map)
+        # if past_key_values.value_cache[0] is not None:
+        #     attn_map = self.get_gqa_attention_map(packed_text_embedding, self.language_model.model.layers[0].self_attn.q_proj, past_key_values.key_cache[0][1:1370], past_key_values.value_cache[0][1:1370])
+        #     print(attn_map)
 
 
         ########################  catch all hidden_states
