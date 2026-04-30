@@ -1,0 +1,19 @@
+data:
+  - 
+    path: "<DATA_ROOT>/edit_process/omniedit/Spatial_Instruction_without_background&single/Spatial_removal_single.jsonl"
+    type: "edit"
+    ratio: !!float 0.25
+  - 
+    path: "<DATA_ROOT>/edit_process/omniedit/Spatial_Instruction_without_background&single/Spatial_swap_single.jsonl"
+    type: "edit"
+    ratio: !!float 0.25
+  - 
+    path: "<DATA_ROOT>/edit_process/omniedit/Spatial_Instruction_without_background&single/Spatial_addition_single.jsonl"
+    type: "edit"
+    ratio: !!float 0.25
+  - 
+    path: "<DATA_ROOT>/edit_process/omniedit/Spatial_Instruction_without_background&single/Spatial_attribute_single.jsonl"
+    type: "edit"
+    ratio: !!float 0.25
+
+    

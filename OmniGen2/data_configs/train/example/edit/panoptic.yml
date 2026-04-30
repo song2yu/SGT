@@ -1,0 +1,7 @@
+data:
+  - 
+    path: "<DATA_ROOT>/data/coco100K.txt"
+    type: "panoptic"
+    ratio: !!float 1.0
+
+

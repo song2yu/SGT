@@ -1,0 +1,12 @@
+data:
+  - 
+    path: "<DATA_ROOT>/data/coco100K.txt"
+    type: "panoptic"
+    ratio: !!float 2
+  - 
+    path: "<DATA_ROOT>/LLaVA-OneVision/llava_onevision_balanced/annotations/all_data.jsonl"
+    type: "sft"
+    ratio: !!float 1.0
+
+
+

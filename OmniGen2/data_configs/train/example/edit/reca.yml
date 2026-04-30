@@ -1,0 +1,8 @@
+data:
+  - 
+    path: "<DATA_ROOT>/data/coco100K.txt"
+    type: "reca"
+    ratio: !!float 1.0
+
+
+    
