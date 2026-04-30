@@ -65,7 +65,7 @@ PYTHONPATH=. python scripts/infer_understanding.py
 # for text2image
 PYTHONPATH=. python scripts/infer_t2i_show.py
 # for image2image
-
+PYTHONPATH=. python scripts/infer_edit.py 
 ```
 ### for BAGEL Training
 Modify the paths of llava-ov and sam in `/efs/brucessyu/SGT/BAGEL/data/dataset_info.py`.
