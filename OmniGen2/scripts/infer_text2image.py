@@ -1,15 +1,22 @@
 # Copyright 2025 OmniGen2 Team
-# Single-image editing demo for OmniGen2.
+# Text-to-image demo for OmniGen2 / SGT-Gen2.
 #
-# This script lives under ``scripts/`` and expects to be run from the
-# project root (or any CWD) -- it resolves the project root itself.
+# This script mirrors the style of ``scripts/infer_edit.py``:
+#   * It resolves the project root so ``omnigen2.*`` imports work from any CWD.
+#   * ``--checkpoint_dir`` mirrors the ``CHECKPOINT_DIR`` pattern used by
+#     ``scripts/infra/infer_gedit.sh``: given a directory that contains
+#     ``transformer/transformer`` and ``transformer/text_encoder`` sub-folders,
+#     both finetuned components are loaded automatically.
 #
-# The ``--checkpoint_dir`` argument mirrors the ``CHECKPOINT_DIR`` variable in
-# ``scripts/infra/infer_gedit.sh``: given a directory that contains
-# ``transformer/transformer`` and ``transformer/text_encoder`` sub-folders,
-# both finetuned components are loaded automatically.
+# Generation logic follows ``scripts/infra/inference.py`` /
+# ``scripts/infra/inference_chat.py``: we call ``OmniGen2Pipeline`` directly
+# with ``input_images=None``, which produces a pure text-to-image sample.
 #
-
+# Default example reproduces ``scripts/infra/example_t2i.sh``:
+#   instruction = "The sun rises slightly, the dew on the rose petals ..."
+#   resolution  = 1024 x 1024
+#   steps       = 50
+#
 
 import argparse
 import glob
@@ -19,11 +26,11 @@ import sys
 
 import numpy as np
 import torch
-from PIL import Image
 from safetensors.torch import load_file
 
-# This file lives at <project_root>/scripts/infer_edit.py; make the project
-# root importable so that `omnigen2.*` modules can be found regardless of CWD.
+# This file lives at <project_root>/scripts/infer_text2image.py; make the
+# project root importable so that ``omnigen2.*`` modules can be found
+# regardless of CWD.
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
@@ -44,6 +51,12 @@ DEFAULT_NEGATIVE_PROMPT = (
     "censored, censor_bar"
 )
 
+DEFAULT_INSTRUCTION = (
+    "The sun rises slightly, the dew on the rose petals in the garden is "
+    "clear, a crystal ladybug is crawling to the dew, the background is the "
+    "early morning garden, macro lens."
+)
+
 
 def set_seeds(seed):
     """Set random seeds for reproducibility."""
@@ -59,11 +72,15 @@ def set_seeds(seed):
     torch.backends.cudnn.benchmark = False
 
 
+# ---------------------------------------------------------------------------
+# Finetuned text-encoder loading (same remap as infer_edit.py)
+# ---------------------------------------------------------------------------
+
 def load_text_encoder_weights(pipeline, text_encoder_path):
     """Load finetuned text encoder (mllm) weights with key remapping.
 
-    Mirrors the logic used in ``eval/gen/gen_gedit.py`` so the same
-    checkpoints can be consumed by this demo script.
+    Mirrors ``infer_edit.load_text_encoder_weights`` so the SGT-Gen2
+    checkpoints can be consumed by this script as well.
     """
     print(f"Loading finetuned text encoder weights from: {text_encoder_path}")
     files = sorted(glob.glob(os.path.join(text_encoder_path, "*.safetensors")))
@@ -87,11 +104,14 @@ def load_text_encoder_weights(pipeline, text_encoder_path):
             new_key = "model." + k.replace("model", "language_model")
         new_state_dict[new_key] = v
 
-    missing, unexpected = pipeline.mllm.load_state_dict(new_state_dict, strict=False)
+    missing, unexpected = pipeline.mllm.load_state_dict(
+        new_state_dict, strict=False
+    )
     print(
         f"Text encoder load: missing={len(missing)}, unexpected={len(unexpected)}"
     )
 
+    # Try to also pick up the processor shipped with the checkpoint.
     try:
         from transformers import AutoProcessor
 
@@ -99,9 +119,13 @@ def load_text_encoder_weights(pipeline, text_encoder_path):
             text_encoder_path, trust_remote_code=True
         )
         print("Processor updated from finetuned checkpoint.")
-    except Exception as e:
+    except Exception as e:  # pragma: no cover - best-effort fallback
         print(f"Could not load processor from checkpoint, using default. Error: {e}")
 
+
+# ---------------------------------------------------------------------------
+# Pipeline loading
+# ---------------------------------------------------------------------------
 
 def load_pipeline(args, device, weight_dtype):
     """Create an ``OmniGen2Pipeline`` with optional finetuned weights.
@@ -159,6 +183,19 @@ def load_pipeline(args, device, weight_dtype):
         print(f"Loading LoRA weights from: {args.transformer_lora_path}")
         pipeline.load_lora_weights(args.transformer_lora_path)
 
+    # Optional scheduler override.
+    if args.scheduler == "dpmsolver++":
+        from omnigen2.schedulers.scheduling_dpmsolver_multistep import (
+            DPMSolverMultistepScheduler,
+        )
+
+        pipeline.scheduler = DPMSolverMultistepScheduler(
+            algorithm_type="dpmsolver++",
+            solver_type="midpoint",
+            solver_order=2,
+            prediction_type="flow_prediction",
+        )
+
     if args.enable_model_cpu_offload:
         pipeline.enable_model_cpu_offload()
     elif args.enable_sequential_cpu_offload:
@@ -169,95 +206,68 @@ def load_pipeline(args, device, weight_dtype):
     return pipeline
 
 
-def compute_output_size(image, max_size=1024, min_size=512, stride=16):
-    """Rescale the input image so its dims fit within [min_size, max_size]
-    and are divisible by ``stride``.
+# ---------------------------------------------------------------------------
+# Generation
+# ---------------------------------------------------------------------------
 
-    Returns the target (width, height).
-    """
-
-    def _make_divisible(value, stride_):
-        return max(stride_, int(round(value / stride_) * stride_))
-
-    def _apply_scale(w_, h_, scale):
-        new_w = _make_divisible(round(w_ * scale), stride)
-        new_h = _make_divisible(round(h_ * scale), stride)
-        return new_w, new_h
-
-    w, h = image.size
-    scale = min(max_size / max(w, h), 1.0)
-    scale = max(scale, min_size / min(w, h))
-    w, h = _apply_scale(w, h, scale)
-
-    if max(w, h) > max_size:
-        scale = max_size / max(w, h)
-        w, h = _apply_scale(w, h, scale)
-
-    return w, h
-
-
-def edit_image(pipeline, image, instruction, args, device):
-    """Run the editing pipeline on a single image + instruction."""
-    if args.height and args.width:
-        width, height = args.width, args.height
-    else:
-        width, height = compute_output_size(
-            image, max_size=args.max_image_size, min_size=args.min_image_size
-        )
-
-    input_image = image.resize((width, height), Image.LANCZOS)
-
-    # OmniGen2 expects an <img> placeholder in the prompt for every input image.
-    prompt = f"<img>\n{instruction}"
-
+def generate_image(pipeline, instruction, args, device):
+    """Run a single text-to-image generation and return PIL images."""
     generator = torch.Generator(device=device).manual_seed(args.seed)
 
     result = pipeline(
-        prompt=prompt,
-        input_images=[input_image],
-        height=height,
-        width=width,
+        prompt=instruction,
+        input_images=None,  # text-to-image: no reference images.
+        width=args.width,
+        height=args.height,
         num_inference_steps=args.num_inference_steps,
         max_sequence_length=1024,
         text_guidance_scale=args.cfg_text_scale,
         image_guidance_scale=args.cfg_img_scale,
         cfg_range=(args.cfg_range_start, args.cfg_range_end),
         negative_prompt=args.negative_prompt,
-        num_images_per_prompt=1,
+        num_images_per_prompt=args.num_images_per_prompt,
         generator=generator,
         output_type="pil",
     )
-    return result.images[0], input_image
+    return result.images
 
+
+# ---------------------------------------------------------------------------
+# Argument parsing / main
+# ---------------------------------------------------------------------------
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Single-image editing demo for OmniGen2."
+        description=(
+            "Text-to-image demo for OmniGen2 / SGT-Gen2. Reproduces "
+            "scripts/infra/example_t2i.sh by default."
+        )
     )
 
-    # Inputs
-    parser.add_argument(
-        "--input_image",
-        type=str,
-        default="../assets/图片3.png",
-        help="Path to the input image to edit.",
-    )
+    # Prompt / output
     parser.add_argument(
         "--instruction",
         type=str,
-        default="Replace the elephant with a puppy.",
-        help="Natural-language editing instruction.",
+        default=DEFAULT_INSTRUCTION,
+        help="Text prompt for generation.",
     )
     parser.add_argument(
-        "--output_path",
+        "--negative_prompt",
         type=str,
-        default="outputs/puppy.png",
-        help="Where to save the edited image.",
+        default=DEFAULT_NEGATIVE_PROMPT,
+        help="Negative prompt for generation.",
     )
     parser.add_argument(
-        "--save_source",
-        action="store_true",
-        help="Also save the (resized) source image next to the output.",
+        "--output_image_path",
+        type=str,
+        default="outputs/output_t2i.png",
+        help="Where to save the generated image.",
+    )
+    parser.add_argument(
+        "--num_images_per_prompt",
+        type=int,
+        default=1,
+        help="Number of images to sample per prompt.",
     )
 
     # Model paths
@@ -268,55 +278,96 @@ def parse_args():
         help="HuggingFace repo id or local path of the base OmniGen2 model.",
     )
     parser.add_argument(
-        "--checkpoint_dir", type=str, default='pretrained_models/SGT-Gen2',
+        "--checkpoint_dir",
+        type=str,
+        default="pretrained_models/SGT-Gen2",
         help=(
             "Optional path to a finetuned checkpoint directory. The script "
             "expects `<checkpoint_dir>/transformer/transformer` and "
             "`<checkpoint_dir>/transformer/text_encoder` to exist, mirroring "
-            "the layout used by scripts/infra/infer_gedit.sh."
+            "the layout used by scripts/infer_edit.py. Pass an empty string "
+            "to skip and use the base model only."
         ),
     )
     parser.add_argument(
-        "--transformer_lora_path", type=str, default=None,
-        help="Optional path to LoRA weights for the transformer."
+        "--transformer_lora_path",
+        type=str,
+        default=None,
+        help="Optional path to LoRA weights for the transformer.",
     )
 
     # Generation parameters
     parser.add_argument("--num_inference_steps", type=int, default=50)
-    parser.add_argument("--cfg_text_scale", type=float, default=5.0)
-    parser.add_argument("--cfg_img_scale", type=float, default=2.0)
+    parser.add_argument(
+        "--cfg_text_scale",
+        type=float,
+        default=4.0,
+        help="Text classifier-free guidance scale (example_t2i.sh uses 4.0).",
+    )
+    parser.add_argument(
+        "--cfg_img_scale",
+        type=float,
+        default=1.0,
+        help=(
+            "Image guidance scale. For pure text-to-image this is effectively "
+            "ignored (set to 1.0 by the pipeline when no input images)."
+        ),
+    )
     parser.add_argument("--cfg_range_start", type=float, default=0.0)
     parser.add_argument("--cfg_range_end", type=float, default=1.0)
-    parser.add_argument("--seed", type=int, default=3)
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
-        "--negative_prompt", type=str, default=DEFAULT_NEGATIVE_PROMPT
+        "--scheduler",
+        type=str,
+        default="euler",
+        choices=["euler", "dpmsolver++"],
+        help="Sampling scheduler to use.",
     )
 
     # Size parameters
-    parser.add_argument("--max_image_size", type=int, default=1024)
-    parser.add_argument("--min_image_size", type=int, default=512)
-    parser.add_argument(
-        "--height", type=int, default=None,
-        help="Force output height (must be a multiple of 16)."
-    )
-    parser.add_argument(
-        "--width", type=int, default=None,
-        help="Force output width (must be a multiple of 16)."
-    )
+    parser.add_argument("--height", type=int, default=1024)
+    parser.add_argument("--width", type=int, default=1024)
 
     # Runtime
     parser.add_argument(
-        "--dtype", type=str, default="bf16",
+        "--dtype",
+        type=str,
+        default="bf16",
         choices=["fp32", "fp16", "bf16"],
     )
     parser.add_argument(
-        "--device", type=str, default=None,
-        help="Device to run on. Defaults to cuda if available, otherwise cpu."
+        "--device",
+        type=str,
+        default=None,
+        help="Device to run on. Defaults to cuda if available, otherwise cpu.",
     )
     parser.add_argument("--enable_model_cpu_offload", action="store_true")
     parser.add_argument("--enable_sequential_cpu_offload", action="store_true")
 
     return parser.parse_args()
+
+
+def save_images(images, output_path):
+    """Save one or more PIL images to ``output_path``.
+
+    When multiple images are produced, they are written as
+    ``<stem>_{i}<ext>``; the first image is always written to the exact path
+    the user requested.
+    """
+    os.makedirs(
+        os.path.dirname(os.path.abspath(output_path)) or ".", exist_ok=True
+    )
+
+    if len(images) == 1:
+        images[0].save(output_path)
+        print(f"Saved image to: {output_path}")
+        return
+
+    stem, ext = os.path.splitext(output_path)
+    for i, img in enumerate(images):
+        path_i = output_path if i == 0 else f"{stem}_{i}{ext}"
+        img.save(path_i)
+        print(f"Saved image to: {path_i}")
 
 
 def main():
@@ -333,31 +384,23 @@ def main():
     weight_dtype = dtype_map[args.dtype]
 
     print("=" * 60)
-    print("OmniGen2 single-image edit demo")
-    print(f"  input_image : {args.input_image}")
-    print(f"  instruction : {args.instruction}")
-    print(f"  output_path : {args.output_path}")
-    print(f"  model_path  : {args.model_path}")
-    print(f"  device/dtype: {device} / {args.dtype}")
-    print(f"  seed/steps  : {args.seed} / {args.num_inference_steps}")
+    print("OmniGen2 text-to-image demo")
+    print(f"  instruction   : {args.instruction}")
+    print(f"  output_path   : {args.output_image_path}")
+    print(f"  model_path    : {args.model_path}")
+    print(f"  checkpoint_dir: {args.checkpoint_dir}")
+    print(f"  device/dtype  : {device} / {args.dtype}")
+    print(f"  seed/steps    : {args.seed} / {args.num_inference_steps}")
+    print(f"  size (HxW)    : {args.height} x {args.width}")
+    print(f"  cfg text/img  : {args.cfg_text_scale} / {args.cfg_img_scale}")
+    print(f"  num_images    : {args.num_images_per_prompt}")
     print("=" * 60)
-
-    if not os.path.exists(args.input_image):
-        raise FileNotFoundError(f"Input image not found: {args.input_image}")
-    image = Image.open(args.input_image).convert("RGB")
 
     pipeline = load_pipeline(args, device, weight_dtype)
 
-    edited, source = edit_image(pipeline, image, args.instruction, args, device)
+    images = generate_image(pipeline, args.instruction, args, device)
 
-    os.makedirs(os.path.dirname(os.path.abspath(args.output_path)) or ".", exist_ok=True)
-    edited.save(args.output_path)
-    print(f"Saved edited image to: {args.output_path}")
-
-    if args.save_source:
-        src_path = os.path.splitext(args.output_path)[0] + "_source.png"
-        source.save(src_path)
-        print(f"Saved resized source image to: {src_path}")
+    save_images(images, args.output_image_path)
 
 
 if __name__ == "__main__":

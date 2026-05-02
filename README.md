@@ -50,8 +50,20 @@ SGT takes a different approach: use **high-level semantic segmentation** as the 
 git clone https://github.com/song2yu/SGT.git
 cd SGT
 ```
-### for BAGEL Installation
+
+---
+## Download Datasets
+Here we sample a subset of LLaVA-OneVision, you may also choose to download the full dataset.
+Modify `OUTPUT_DIR` in `dowload_ov.py` to your desired location.
+```bash
+# download LLaVA-OneVision subset
+python dowload_ov.py
+# download sam subset || Chinese users can use --use-mirror
+python download_sam.py --target-dir ./data/SAM-SGT --use-mirror
 ```
+## BAGEL
+### for BAGEL Installation
+```bash
 bash setup_bagel.sh
 cd BAGEL && source activate_env.sh
 bash shells/download_ckpt.sh
@@ -74,18 +86,25 @@ bash shells/train_sgt.sh
 ```
 
 
+
 ---
-## Download Datasets
-Here we sample a subset of LLaVA-OneVision, you may also choose to download the full dataset.
-Modify `OUTPUT_DIR` in `dowload_ov.py` to your desired location.
+## OmniGen2
+### for OmniGen2 Installation
 ```bash
-# download LLaVA-OneVision subset
-python dowload_ov.py
-# download sam subset || Chinese users can use --use-mirror
-python download_sam.py --target-dir ./data/SAM-SGT --use-mirror
+bash setup_gen2.sh
+cd OmniGen2 && source activate_env.sh
+bash shells/download_ckpt.sh
+bash shells/download_gen2.sh
 ```
-
-
+### for OmniGen2 Inference
+```bash
+# for vision2text
+PYTHONPATH=. python scripts/infer_und.py
+# for text2image
+PYTHONPATH=. python scripts/infer_text2image.py
+# for image2image
+PYTHONPATH=. python scripts/infer_edit.py 
+```
 
 ---
 ## Project Page
