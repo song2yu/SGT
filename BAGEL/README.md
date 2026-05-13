@@ -54,7 +54,7 @@ layout and the extraction instructions.
 ## 📊 Highlights
 
 - **+6.02%** average gain over BAGEL on the **CV-Bench** evaluation.
-- Consistent improvements in **spatial reasoning**, **hallucination resistance**, **vision-centric**, **general VQA**, and **OCR**.
+- Consistent improvements in **spatial reasoning**, **hallucination resistance**, **vision-centric**, and **general VQA**.
 - Generation: gains across **GenEval** dimensions (Position / Color etc.).
 - Verified on two representative UMM architectures (**BAGEL**, **OmniGen2**).
 
