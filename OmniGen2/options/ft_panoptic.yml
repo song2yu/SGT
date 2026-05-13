@@ -6,19 +6,20 @@ workder_specific_seed: true
 
 data:
   # '<DATA_ROOT>/data/train2017/'
-  data_path: data_configs/train/example/edit/panoptic.yml   #data_configs/train/example/edit/edit.yml
+  data_path: data_configs/train/example/edit/panoptic.yml
   use_chat_template: true
   maximum_text_tokens: 888
   prompt_dropout_prob: !!float 0.0001
   ref_img_dropout_prob: !!float 0.5
   max_output_pixels: 1048576 # 1024 * 1024
-  max_input_pixels: [1048576, 1048576, 589824, 262144] # [1024 * 1024, 1024 * 1024, 768 * 768, 512 * 512]
+  max_input_pixels: [1048576, 1048576, 589824, 262144] # [1024*1024, 1024*1024, 768*768, 512*512]
   max_side_length: 2048
   
 model:
-  pretrained_vae_model_name_or_path: black-forest-labs/FLUX.1-dev
-  pretrained_text_encoder_model_name_or_path: Qwen/Qwen2.5-VL-3B-Instruct
-  pretrained_model_path: OmniGen2/OmniGen2
+  # Local paths populated by shells/download_pretrained.sh.
+  pretrained_vae_model_name_or_path: pretrained_models/FLUX.1-dev
+  pretrained_text_encoder_model_name_or_path: pretrained_models/Qwen2.5-VL-3B-Instruct
+  pretrained_model_path: pretrained_models/OmniGen2
   
   arch_opt:
     patch_size: 2

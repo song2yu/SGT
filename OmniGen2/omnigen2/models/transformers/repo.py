@@ -77,6 +77,24 @@ class OmniGen2RotaryPosEmbed(nn.Module):
 
         for i in range(len(self.axes_dim)):
             freqs = freqs_cis[i].to(ids.device)
+            # Guard: Qwen/OmniGen2 RoPE tables are sized by ``axes_lens`` (10k
+            # per axis by default). If any position id exceeds the table
+            # length, the subsequent ``torch.gather`` triggers a CUDA
+            # device-side assert that's hard to debug because it surfaces at
+            # a later kernel. Do an upfront host-side check so we get an
+            # actionable error message that identifies the offending axis,
+            # max id, and table length.
+            axis_ids = ids[:, :, i]
+            max_id = int(axis_ids.max().item())
+            if max_id >= freqs.shape[0]:
+                raise RuntimeError(
+                    f"[RoPE] position id out of range on axis {i}: "
+                    f"max_id={max_id} >= axes_lens[{i}]={freqs.shape[0]}. "
+                    f"Increase ``axes_lens`` in the model config or shrink "
+                    f"the input sequence/image token count. "
+                    f"(ids.shape={tuple(ids.shape)}, axis_ids.min="
+                    f"{int(axis_ids.min().item())}, axis_ids.max={max_id})"
+                )
             index = ids[:, :, i : i + 1].repeat(1, 1, freqs.shape[-1]).to(torch.int64)
             # 1. Prepare inputs and convert to real representation
             input_tensor_complex = freqs.unsqueeze(0).repeat(index.shape[0], 1, 1)

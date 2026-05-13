@@ -1,12 +1,16 @@
 data:
+  # - 
+  #   path: "<DATA_ROOT>/data/coco100K.txt"
+  #   type: "panoptic" # edge segment detection depth completion panoptic SR denoising dehazing derain enhance
+  #   ratio: !!float 2
   - 
-    path: "<DATA_ROOT>/data/coco100K.txt"
-    type: "panoptic"
-    ratio: !!float 2
-  - 
-    path: "<DATA_ROOT>/LLaVA-OneVision/llava_onevision_balanced/annotations/all_data.jsonl"
+    path: "<DATA_ROOT>/LLaVA-OneVision-SGT/llava_onevision_balanced/annotations/all_data.jsonl"
     type: "sft"
     ratio: !!float 1.0
-
-
-
+  -
+    # SAM-190k segmentation proxy. The txt stores absolute paths such as
+    # <DATA_ROOT>/sam-qa/sam_selection/sa_XXX.jpg
+    # process_sam derives the mask by: sam_selection->sam_mask and .jpg->.png
+    path: "<DATA_ROOT>/sam-qa/file_names/sam_190k_new.txt"
+    type: "sam"
+    ratio: !!float 2.0

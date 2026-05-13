@@ -36,7 +36,7 @@ import accelerate
 from accelerate import Accelerator
 from accelerate.state import AcceleratorState
 from accelerate.logging import get_logger
-from accelerate.utils import ProjectConfiguration, set_seed
+from accelerate.utils import ProjectConfiguration, set_seed, DistributedDataParallelKwargs
 
 import transformers
 from transformers import AutoTokenizer
@@ -170,23 +170,80 @@ def log_time_distribution(transport, device, args):
     logger.info(f"Time step distribution plot saved to {save_path}")
     
     
-class OmniGenJointModel(torch.nn.Module):
+class OmniGenJointModel:
+    """Dispatch container for the DiT + Qwen2.5-VL text encoder.
+
+    Design rationale
+    ----------------
+    This class used to inherit from ``torch.nn.Module``. That made it a
+    single composite module holding Qwen2.5-VL + OmniGen2 DiT (~7.7B
+    params) as children. When we fed that composite through
+    ``accelerator.prepare(...)`` with FSDP, the training hung on the very
+    first step -- GPU util 100%, memory ~0, no progress past Steps: 0.
+    Diagnostic smoke tests ruled out NCCL and the hardware.
+
+    Switching this class to a plain Python class (no ``nn.Module``, no
+    ``super().__init__()``, no submodule registration) lets us call
+    ``accelerator.prepare(model, text_encoder, optimizer, ...)`` directly,
+    so FSDP wraps the DiT and the text encoder as two INDEPENDENT units
+    with disjoint FlatParameter trees. The training-loop code keeps using
+    ``joint_model(run_sft=True)`` / ``joint_model(run_text_encoder=True)``
+    unchanged; dispatch still goes through ``self.model`` / ``self.text_
+    encoder``, which after prepare() are the FSDP-wrapped versions.
+
+    Because this is NOT an nn.Module, the old ``self.lm_head`` attribute
+    would never have been a registered submodule anyway -- it was just a
+    Python alias. We keep exposing it as a plain attribute for backward
+    compatibility with external callers.
+    """
+
     def __init__(self, transformer, text_encoder):
-        super().__init__()
+        # Plain attribute assignment (no nn.Module submodule registration).
+        # Rebinding these after accelerator.prepare() is what swaps in the
+        # FSDP-wrapped versions.
         self.model = transformer          # DiT model
         self.text_encoder = text_encoder  # Qwen2.5-VL
-        
-        # Retrieve the LM head (used for SFT).
-        # For Qwen2.5-VL it is usually available as `model.lm_head`.
+
+        # Back-compat alias. The training loop never calls this -- sft
+        # forward uses text_encoder(labels=...) which runs lm_head
+        # internally. Here just for external users.
         if hasattr(text_encoder, 'lm_head'):
             self.lm_head = text_encoder.lm_head
         else:
-            # Fall back to creating one manually if unavailable.
             hidden_size = text_encoder.config.hidden_size
             vocab_size = text_encoder.config.vocab_size
             self.lm_head = nn.Linear(hidden_size, vocab_size, bias=False)
             print(f"Created new lm_head: hidden_size={hidden_size}, vocab_size={vocab_size}")
-    
+
+    # ------------------------------------------------------------------
+    # Convenience helpers so legacy code treating joint_model as an
+    # nn.Module still works for the two operations it actually needs:
+    # counting trainable params and enumerating them for the optimizer.
+    # These iterate over the REAL underlying modules, so they see the
+    # pre-prepare() parameters (correct for optimizer construction).
+    #
+    # NOTE: We intentionally return plain lists (not generators) because
+    # several callers -- e.g. log_model_info() -- iterate ``.parameters()``
+    # twice (once for total params, once for trainable params), which a
+    # generator would not support.
+    # ------------------------------------------------------------------
+    def parameters(self, recurse: bool = True):
+        return (
+            list(self.model.parameters(recurse=recurse))
+            + list(self.text_encoder.parameters(recurse=recurse))
+        )
+
+    def named_parameters(self, prefix: str = '', recurse: bool = True):
+        out = []
+        for name, p in self.model.named_parameters(prefix='model', recurse=recurse):
+            out.append((name, p))
+        for name, p in self.text_encoder.named_parameters(prefix='text_encoder', recurse=recurse):
+            out.append((name, p))
+        return out
+
+    def __call__(self, *args, **kwargs):
+        return self.forward(*args, **kwargs)
+
     def forward(self, *args, **kwargs):
         """
         Unified forward entry point.
@@ -296,10 +353,16 @@ class SFTOutput:
 def main(args):
     accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=Path(args.output_dir, 'logs'))
 
+    # ``args.logger.log_with`` is None/~ when all trackers are disabled; in
+    # that case skip the OmegaConf round-trip because ``to_object(None)``
+    # throws ``ValueError: Input cfg is not an OmegaConf config object``.
+    log_with_cfg = args.logger.log_with
+    log_with_value = OmegaConf.to_object(log_with_cfg) if log_with_cfg is not None else None
+
     accelerator = Accelerator(
         gradient_accumulation_steps=args.train.gradient_accumulation_steps,
         mixed_precision=args.train.mixed_precision,
-        log_with=OmegaConf.to_object(args.logger.log_with),
+        log_with=log_with_value,
         project_config=accelerator_project_config,
     )
 
@@ -404,7 +467,18 @@ def main(args):
 
     if args.train.gradient_checkpointing:
         model.enable_gradient_checkpointing()
-        text_encoder.gradient_checkpointing_enable()
+        # NOTE: We MUST pass ``use_reentrant=False``. The default reentrant
+        # checkpoint re-invokes an ``autograd.Function`` during backward,
+        # which re-triggers DDP's parameter-used hooks and interacts badly
+        # with ``find_unused_parameters=True`` + ``no_sync()`` (grad-accum).
+        # The symptom is a hang at roughly the first optimizer step -- an
+        # _ALLGATHER_BASE with NumelIn=1 times out because one rank issues
+        # an extra ready-bit that the others never reach. Non-reentrant
+        # checkpointing lets DDP see each parameter exactly once per
+        # backward and the deadlock disappears.
+        text_encoder.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs={"use_reentrant": False}
+        )
 
     model.requires_grad_(True)
     # pdb.set_trace()
@@ -500,6 +574,16 @@ def main(args):
 
     logger.info("***** Prepare dataLoader *****")
     from omnigen2.dataset.sampler import TaskTypeDistributedSampler
+
+    # Optional: mix task types across gradient-accumulation steps. Configure
+    # via the YAML key ``data.interleave_pattern`` -- e.g. ``[gen, gen, sft]``
+    # streams 2 SAM micro-batches + 1 LLaVA micro-batch in every cycle. Each
+    # micro-batch is still single-task so the existing train loop does not
+    # need to handle mixed batches.
+    interleave_pattern = OmegaConf.to_object(args.data.get('interleave_pattern', None)) \
+        if args.data.get('interleave_pattern', None) is not None else None
+    if interleave_pattern:
+        logger.info(f"[sampler] interleave_pattern = {interleave_pattern}")
     task_sampler = TaskTypeDistributedSampler(
         dataset=train_dataset,
         batch_size=args.train.batch_size,
@@ -508,6 +592,7 @@ def main(args):
         shuffle=True,
         seed=args.seed if args.seed is not None else 0,
         drop_last=True,
+        interleave_pattern=interleave_pattern,
     )
 
 
@@ -573,15 +658,93 @@ def main(args):
         )
 
     logger.info("***** Prepare everything with our accelerator *****")
-    if args.train.ema_decay != 0:
-        joint_model, model_ema, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-            joint_model, model_ema, optimizer, train_dataloader, lr_scheduler
-        )
-        model_ema = EMAModel(model_ema.parameters(), decay=ema_decay, model_cls=type(unwrap_model(model)), model_config=model_ema.config)
+    # IMPORTANT: We used to call accelerator.prepare(joint_model, ...) which
+    # passes a single composite nn.Module (Qwen2.5-VL + OmniGen2 DiT, ~7.7B
+    # params) through Accelerate's FSDP plugin. That path hangs on our
+    # cluster at the very first forward / AllGather: GPU util 100%, memory
+    # near 0, never advances past Steps: 0. Diagnostic smoke tests ruled
+    # out NCCL / hardware / plain DDP -- the hang is specific to feeding
+    # one huge composite module to FSDP's auto-wrap policy.
+    #
+    # Fix: prepare the DiT (``model``) and the text encoder SEPARATELY.
+    # Each model gets its own FSDP wrapper with only the transformer-layer
+    # classes that actually exist in it:
+    #   - OmniGen2 DiT       -> OmniGen2TransformerBlock
+    #   - Qwen2.5-VL encoder -> Qwen2_5_VLDecoderLayer + Qwen2_5_VLVisionBlock
+    # Feeding the union list to both prepare() calls fails because
+    # Accelerate's set_auto_wrap_policy raises when a requested class is
+    # not found in the model.
+    #
+    # Accelerate's fsdp_plugin caches the compiled auto_wrap_policy after
+    # the first prepare() call, so to use different wrap classes per
+    # model we must manually reset ``transformer_cls_names_to_wrap`` AND
+    # ``auto_wrap_policy`` between the two prepare_model() invocations.
+    from torch.distributed.fsdp.wrap import transformer_auto_wrap_policy
+
+    # Single-GPU debug launch (no --use_fsdp passed to accelerate) has no
+    # fsdp_plugin on AcceleratorState at all -- reading it raises
+    # AttributeError. In that case we fall back to the simple path:
+    # prepare each component directly, no auto-wrap gymnastics needed.
+    use_fsdp = getattr(accelerator.state, "distributed_type", None)
+    use_fsdp = str(use_fsdp).upper().endswith("FSDP") if use_fsdp is not None else False
+
+    if use_fsdp:
+        fsdp_plugin = accelerator.state.fsdp_plugin
+
+        def _set_fsdp_wrap_classes(class_names):
+            """Patch the FSDP plugin so the NEXT prepare_model() call wraps
+            only the given transformer-layer class names. Resetting
+            ``auto_wrap_policy`` to the vanilla transformer policy is required
+            because ``set_auto_wrap_policy`` short-circuits when it has
+            already been compiled to a functools.partial."""
+            fsdp_plugin.transformer_cls_names_to_wrap = list(class_names)
+            fsdp_plugin.auto_wrap_policy = transformer_auto_wrap_policy
+
+        # Step 1: prepare the DiT.
+        _set_fsdp_wrap_classes(["OmniGen2TransformerBlock"])
+        model = accelerator.prepare(model)
+
+        # Step 2: prepare the text encoder.
+        _set_fsdp_wrap_classes(["Qwen2_5_VLDecoderLayer", "Qwen2_5_VLVisionBlock"])
+        text_encoder = accelerator.prepare(text_encoder)
+
+        # Step 3: prepare the non-model objects (EMA + optimizer + dataloader
+        # + scheduler). EMA follows the DiT wrap classes if present.
+        if args.train.ema_decay != 0:
+            _set_fsdp_wrap_classes(["OmniGen2TransformerBlock"])
+            model_ema, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+                model_ema, optimizer, train_dataloader, lr_scheduler
+            )
+            model_ema = EMAModel(model_ema.parameters(), decay=ema_decay, model_cls=type(unwrap_model(model)), model_config=model_ema.config)
+        else:
+            optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+                optimizer, train_dataloader, lr_scheduler
+            )
     else:
-        joint_model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-            joint_model, optimizer, train_dataloader, lr_scheduler
-        )
+        # Single-GPU / no-FSDP path. Prepare each piece individually; there is
+        # no auto-wrap policy to configure. The joint_model rebinding below
+        # still works because ``.model`` / ``.text_encoder`` are plain Module
+        # children and accelerate returns them unmodified (besides .to(device)).
+        logger.info("[RANK 0] FSDP disabled -> single-GPU prepare() path")
+        model = accelerator.prepare(model)
+        text_encoder = accelerator.prepare(text_encoder)
+        if args.train.ema_decay != 0:
+            model_ema, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+                model_ema, optimizer, train_dataloader, lr_scheduler
+            )
+            model_ema = EMAModel(model_ema.parameters(), decay=ema_decay, model_cls=type(unwrap_model(model)), model_config=model_ema.config)
+        else:
+            optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+                optimizer, train_dataloader, lr_scheduler
+            )
+
+    # Rebind the wrapped sub-modules back onto the joint_model container.
+    # joint_model itself is NOT passed through accelerator.prepare(), so
+    # FSDP never sees it as a single unit. Its ``.model`` and
+    # ``.text_encoder`` attributes now point at the FSDP-wrapped versions,
+    # which is what the forward methods in OmniGenJointModel dispatch to.
+    joint_model.model = model
+    joint_model.text_encoder = text_encoder
 
     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.train.gradient_accumulation_steps)
@@ -591,8 +754,9 @@ def main(args):
     args.train.num_train_epochs = math.ceil(args.train.max_train_steps / num_update_steps_per_epoch)
 
     # We need to initialize the trackers we use, and also store our configuration.
-    # The trackers initializes automatically on the main process.
-    if accelerator.is_main_process:
+    # The trackers initializes automatically on the main process. Skip when
+    # ``log_with`` is unset so we don't pay the wandb/tensorboard init cost.
+    if accelerator.is_main_process and args.logger.log_with:
         accelerator.init_trackers("OmniGen2", init_kwargs={"wandb": {"name": args.name}})
 
     # Train!
@@ -680,16 +844,32 @@ def main(args):
                 prompt_ids = batch['text_ids'].to(accelerator.device)      # [B, prompt_len]
                 response_ids = batch['labels'].to(accelerator.device)      # [B, response_len]
                 prompt_mask = batch['text_mask'].to(accelerator.device)
-                
+
+                # ``response_ids`` was produced by the collator with
+                # padding_value=-100 (so it can double as the ``labels``
+                # tensor). Feeding -100 into the Qwen embedding layer
+                # causes an ``indexSelectLargeIndex`` CUDA assert
+                # (negative token id). Build a sanitised copy for the
+                # model input, but keep -100 in ``labels`` so the loss
+                # ignores the padded positions.
+                pad_token_id = getattr(text_tokenizer, 'pad_token_id', 0) or 0
+                response_pad_mask = response_ids.eq(-100)
+                response_ids_for_input = response_ids.masked_fill(
+                    response_pad_mask, pad_token_id
+                )
+
                 # Concatenate.
-                input_ids = torch.cat([prompt_ids, response_ids], dim=-1)
+                input_ids = torch.cat([prompt_ids, response_ids_for_input], dim=-1)
                 labels = torch.cat([
                     torch.full_like(prompt_ids, -100),
                     response_ids
                 ], dim=-1)
+                # attention_mask must be 0 where we just inserted pad
+                # tokens, otherwise the model will "attend" to padding.
+                response_attn = (~response_pad_mask).to(prompt_mask.dtype)
                 attention_mask = torch.cat([
                     prompt_mask,
-                    torch.ones_like(response_ids)
+                    response_attn,
                 ], dim=-1)
                 # max_sft_length = 1024 * 3  # Tune based on available memory; try 1024 / 2048 / 4096.
                 # if input_ids.shape[1] > max_sft_length:
@@ -715,7 +895,7 @@ def main(args):
             bin_occurrence = torch.zeros(n_loss_bins, device=accelerator.device)
             bin_sum_loss = torch.zeros(n_loss_bins, device=accelerator.device)
             
-            with accelerator.accumulate(joint_model):
+            with accelerator.accumulate(joint_model.model, joint_model.text_encoder):
                 
                 # ============ Pure SFT task ============
                 if is_sft_batch:
@@ -749,6 +929,29 @@ def main(args):
                     # pdb.set_trace()
                     text_feats = text_encoder_output.hidden_states[-1]
                     # text_feats = text_encoder_output.last_hidden_state
+
+                    # --- Clip to DiT RoPE capacity -----------------------
+                    # The diffusion transformer's axis-0 RoPE table is
+                    # ``axes_lens[0]`` long (typically 1024 in OmniGen2's
+                    # official checkpoint). The position id assigned to image
+                    # tokens starts at ``cap_seq_len`` and grows by ref-image
+                    # token counts, so if the Qwen output itself is longer
+                    # than the table we hit an out-of-range gather.
+                    #
+                    # Samples with large vision-token bursts (e.g. SAM masks
+                    # or high-res panoptic prompts) routinely produce
+                    # input_ids of length > 1024, which is what triggered
+                    # the original device-side assert. We keep the last
+                    # ``cap_budget`` tokens (padding is left-side, so the
+                    # tail holds the real content including the
+                    # "<|im_start|>assistant" cue) and leave some slack for
+                    # ref + output image positions.
+                    axes_lens0 = int(model.config.axes_lens[0])
+                    # Leave ~128 positions for ref img + image token grid.
+                    cap_budget = max(1, axes_lens0 - 128)
+                    if text_feats.shape[1] > cap_budget:
+                        text_feats = text_feats[:, -cap_budget:, :]
+                        attention_mask = attention_mask[:, -cap_budget:]
                     
                     @torch.no_grad()
                     def encode_vae(img):

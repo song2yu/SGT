@@ -106,6 +106,9 @@ PYTHONPATH=. python scripts/infer_text2image.py
 PYTHONPATH=. python scripts/infer_edit.py 
 ```
 
+
+
+
 ---
 ## Project Page
 

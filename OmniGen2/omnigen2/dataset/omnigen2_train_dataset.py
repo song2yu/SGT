@@ -50,21 +50,55 @@ class OmniGen2TrainDataset(torch.utils.data.Dataset):
 
         self.data = data
         self.tokenizer = tokenizer
-        # Data locations. Override via environment variables or config files so the code
-        # is portable across machines. DATA_ROOT/COCO_ROOT/SFT_IMAGE_ROOT point to the
-        # corresponding dataset directories.
+
+        # --- Pre-compute task-type partitions -----------------------------
+        # ``TaskTypeDistributedSampler`` uses these to stream micro-batches
+        # in either "all same type" or "interleave" mode.
+        # An item is SFT iff it carries an ``id`` (LLaVA-OneVision schema);
+        # everything else is treated as a generation-task sample.
+        self.sft_indices: List[int] = []
+        self.gen_indices: List[int] = []
+        for i, item in enumerate(self.data):
+            item_id = item.get('id') if isinstance(item, dict) else None
+            if item_id not in (None, ''):
+                self.sft_indices.append(i)
+            else:
+                self.gen_indices.append(i)
+        # Data locations. Override via env vars to make the code portable.
         import os
         self.data_base = os.environ.get('OMNIGEN2_OMNIEDIT_ROOT', 'data/omniedit/images/')
         self.coco_base = os.environ.get('OMNIGEN2_COCO_ROOT', 'data/train2017/')
         self.sft_base = os.environ.get('OMNIGEN2_SFT_IMAGE_ROOT', 'data/llava_onevision/images')
+        # Root for SAM-SGT images. Each txt entry is either an absolute path
+        # under ``sam_selection/`` or a path relative to this root. The mask
+        # is obtained by swapping ``sam_selection`` -> ``sam_mask`` and the
+        # extension from .jpg to .png.
+        self.sam_base = os.environ.get('OMNIGEN2_SAM_ROOT', 'data/SAM-SGT')
         self.get_recon_prompt_list = get_recon_prompt_list()
         self.get_segment_prompt_list = get_segment_prompt_list()
         self.get_edge_prompt_list = get_edge_prompt_list()
-        self.processor = AutoProcessor.from_pretrained(
+        # Prefer a local processor dir populated by shells/download_pretrained.sh
+        # to avoid hitting HuggingFace Hub at every process start.
+        qwen_processor_path = os.environ.get(
+            'OMNIGEN2_QWEN_PROCESSOR_PATH',
             'Qwen/Qwen2.5-VL-3B-Instruct',
+        )
+        self.processor = AutoProcessor.from_pretrained(
+            qwen_processor_path,
             min_pixels=256 * 28 * 28,      # Minimum number of pixels
             max_pixels=1280 * 28 * 28,     # Maximum number of pixels (about 1280 * 1280)
         )
+
+    def _resolve_data_root(self, path: str) -> str:
+        """Replace the ``<DATA_ROOT>`` placeholder in a config path with the
+        value of the ``OMNIGEN2_DATA_ROOT`` env var (falls back to ``data``).
+        Keeps the rest of the string untouched so existing absolute paths
+        still work unchanged.
+        """
+        if not isinstance(path, str) or "<DATA_ROOT>" not in path:
+            return path
+        data_root = os.environ.get("OMNIGEN2_DATA_ROOT", "data")
+        return path.replace("<DATA_ROOT>", data_root.rstrip("/"))
 
     def _collect_annotations(self, config):
         total_samples = 0
@@ -72,6 +106,7 @@ class OmniGen2TrainDataset(torch.utils.data.Dataset):
         json_datasets = []
         for data in config['data']:
             data_path, data_type = data['path'], data.get("type", "default")
+            data_path = self._resolve_data_root(data_path)
             if os.path.isdir(data_path):
                 jsonl_files = list(glob.glob(os.path.join(data_path, "**/*.jsonl"), recursive=True)) + list(glob.glob(os.path.join(data_path, "**/*.json"), recursive=True))
                 json_dataset = load_dataset('json', data_files=jsonl_files, cache_dir=None)['train']
@@ -416,37 +451,146 @@ class OmniGen2TrainDataset(torch.utils.data.Dataset):
         }
         return data
 
+    def process_sam(self, data_item):
+        """Process a SAM-SGT item (image -> segmentation mask).
+
+        Each ``data_item`` comes from the SAM txt list and therefore looks
+        like ``{'text': '<path to sam_selection/XYZ.jpg>'}``. Following
+        BAGEL/data/sam_190k.py:
+
+        * The input image lives under ``sam_selection/``.
+        * The paired mask is obtained by replacing ``sam_selection`` with
+          ``sam_mask`` and changing the extension from ``.jpg`` to ``.png``.
+        * The instruction is randomly sampled from the segmentation prompt
+          list (shared with panoptic / semantic).
+
+        The resulting dict mirrors the shape returned by
+        ``process_panoptic`` so it flows through the existing collator
+        without further changes.
+        """
+        data_item['task_type'] = 'sam'
+
+        # Keep SAM deterministic: never drop the prompt / reference image.
+        # (Random dropout was useful for pure generation tasks but here we
+        # want every sample to actually contribute the segmentation signal.)
+        drop_prompt = False
+        drop_ref_img = drop_prompt and random.random() < self.ref_img_dropout_prob
+
+        if drop_prompt:
+            instruction = self.apply_chat_template("", self.SYSTEM_PROMPT_DROP)
+        else:
+            prompt = random.choice(self.get_segment_prompt_list)
+            instruction = self.apply_chat_template(prompt, self.SYSTEM_PROMPT)
+
+        # --- Resolve the input-image path --------------------------------
+        # ``data_item['text']`` is a single line from the SAM txt list. We
+        # support both absolute paths (as in BAGEL's sam_190k.py) and paths
+        # relative to ``OMNIGEN2_SAM_ROOT`` so users can keep the list
+        # portable across machines.
+        raw_path = data_item['text']
+        if os.path.isabs(raw_path):
+            input_image_path = raw_path
+        else:
+            input_image_path = os.path.join(self.sam_base, raw_path)
+
+        # Derive the mask path exactly the way sam_190k.py does.
+        output_image_path = (
+            input_image_path
+            .replace('sam_selection', 'sam_mask')
+            .replace('.jpg', '.png')
+        )
+
+        input_images_path = [input_image_path]
+        inputs_items = None
+
+        if not drop_ref_img:
+            max_input_pixels = (
+                self.max_input_pixels[0]
+                if isinstance(self.max_input_pixels, list)
+                else self.max_input_pixels
+            )
+            input_images = []
+            for p in input_images_path:
+                img = Image.open(p).convert("RGB")
+                img = self.image_processor.preprocess(
+                    img,
+                    max_pixels=max_input_pixels,
+                    max_side_length=self.max_side_length,
+                )
+                input_images.append(img)
+
+            # Build MLLM-ready tokens + pixel features, matching
+            # process_panoptic / process_semantic.
+            original_padding_side = self.processor.tokenizer.padding_side
+            self.processor.tokenizer.padding_side = "left"
+            try:
+                inputs_items = self.processor(
+                    text=instruction,
+                    images=input_images_path,
+                    padding=True,
+                    return_tensors="pt",
+                )
+            finally:
+                self.processor.tokenizer.padding_side = original_padding_side
+        else:
+            input_images_path, input_images = None, None
+
+        # --- Target mask -------------------------------------------------
+        output_image = Image.open(output_image_path).convert("RGB")
+        # SAM masks may be stored at a different resolution than the image
+        # (sam_190k.py resizes the mask to the image size). Delegate that
+        # to image_processor.preprocess which handles target-size alignment.
+        output_image = self.image_processor.preprocess(
+            output_image,
+            max_pixels=self.max_output_pixels,
+            max_side_length=self.max_side_length,
+        )
+
+        data = {
+            'task_type': data_item['task_type'],
+            'instruction': instruction,
+            'input_images_path': input_images_path,
+            'input_images': input_images,
+            'output_image': output_image,
+            'output_image_path': output_image_path,
+        }
+        if inputs_items is not None:
+            data.update({
+                'input_ids': inputs_items.input_ids,
+                'attention_mask': inputs_items.attention_mask,
+                'pixel_values': inputs_items['pixel_values'],
+                'image_grid_thw': inputs_items['image_grid_thw'],
+            })
+        return data
+
     def process_sft(self, data_item):
         data_item['task_type'] = 'sft'
-        
+
         # Extract question and answer from the conversations
         conversations = data_item['conversations']
         human_input = ""
         gpt_output = ""
-        
+
         for conv in conversations:
             if conv['from'] == 'human':
                 human_input = conv['value']
             elif conv['from'] == 'gpt':
                 gpt_output = conv['value']
-        
-        # Build the instruction by applying the chat template
-        instruction = self.apply_chat_template(human_input, self.SYSTEM_PROMPT)
-        
+
         # Check whether images are present
         input_file = data_item.get('image', None)
         has_image = input_file is not None and input_file != "" and input_file != []
-        
+
         # If `image` is a list, check whether it is empty
         if isinstance(input_file, list):
             has_image = len(input_file) > 0
-        
+
         # Initialize image-related variables
         input_images_path = None
         input_images = None
         pixel_values = None
         image_grid_thw = None
-        
+
         if has_image:
             # ========== With images ==========
             # Handle image paths (single or multiple)
@@ -454,17 +598,18 @@ class OmniGen2TrainDataset(torch.utils.data.Dataset):
                 input_images_path = [os.path.join(self.sft_base, input_file)]
             elif isinstance(input_file, list):
                 input_images_path = [os.path.join(self.sft_base, f) for f in input_file]
-            
-            # Preprocess images
+
+            # Preprocess images for the (unused here, but required by the
+            # downstream collator) VAE tensor list.
             input_images = []
             max_input_pixels = self.max_input_pixels[0] if isinstance(self.max_input_pixels, list) else self.max_input_pixels
-            
+
             for input_image_path in input_images_path:
                 try:
                     input_image = Image.open(input_image_path).convert("RGB")
                     input_image = self.image_processor.preprocess(
-                        input_image, 
-                        max_pixels=max_input_pixels, 
+                        input_image,
+                        max_pixels=max_input_pixels,
                         max_side_length=self.max_side_length
                     )
                     input_images.append(input_image)
@@ -475,17 +620,81 @@ class OmniGen2TrainDataset(torch.utils.data.Dataset):
                     input_images = None
                     input_images_path = None
                     break
-        
+
+        # ---------- Build the SFT chat prompt --------------------------------
+        # IMPORTANT: ``apply_chat_template`` used by the generation branches
+        # hardcodes exactly one ``<|image_pad|>`` placeholder and is wrong
+        # for SFT because (a) LLaVA samples already use ``<image>`` markers
+        # in the human turn, and the number of markers equals the number of
+        # attached images; (b) text-only LLaVA samples (~17% of the jsonl)
+        # have zero images, so any unconditionally-inserted image placeholder
+        # causes a count mismatch between ``<|image_pad|>`` tokens and the
+        # batch's ``pixel_values`` / ``image_grid_thw`` -- which surfaces as
+        # an ``indexSelectLargeIndex`` CUDA assert deep inside
+        # ``Qwen2_5_VL.get_image_features``.
+        #
+        # For SFT we therefore build the prompt directly: replace every
+        # ``<image>`` in the user turn with Qwen's
+        # ``<|vision_start|><|image_pad|><|vision_end|>`` triple, producing
+        # exactly one placeholder per real image. Text-only samples emit no
+        # placeholder at all.
+        n_images_in_prompt = 0
+        if has_image and input_images_path is not None:
+            # If the human turn already contains ``<image>``, respect its
+            # count/positions; otherwise fall back to prepending one
+            # placeholder per image so the placeholder count still matches
+            # ``pixel_values``.
+            placeholder = "<|vision_start|><|image_pad|><|vision_end|>"
+            if '<image>' in human_input:
+                # Replace every ``<image>`` (and its common ``<image>\n`` variant
+                # in LLaVA) with the Qwen vision placeholder.
+                user_turn = human_input.replace('<image>\n', placeholder) \
+                                       .replace('<image>', placeholder)
+                n_images_in_prompt = user_turn.count(placeholder)
+            else:
+                n_images_in_prompt = len(input_images_path)
+                user_turn = (placeholder * n_images_in_prompt) + human_input
+
+            # Keep placeholder count and image count aligned. If the text
+            # under-specifies (< images) prepend extras; if it over-specifies
+            # (> images) drop the surplus placeholders so processor does not
+            # try to consume images that do not exist.
+            if n_images_in_prompt < len(input_images_path):
+                missing = len(input_images_path) - n_images_in_prompt
+                user_turn = (placeholder * missing) + user_turn
+                n_images_in_prompt = len(input_images_path)
+            elif n_images_in_prompt > len(input_images_path):
+                extra = n_images_in_prompt - len(input_images_path)
+                for _ in range(extra):
+                    idx = user_turn.rfind(placeholder)
+                    user_turn = user_turn[:idx] + user_turn[idx + len(placeholder):]
+                n_images_in_prompt = len(input_images_path)
+        else:
+            # Text-only: strip any stray ``<image>`` tokens so they don't
+            # show up literally in the prompt.
+            user_turn = human_input.replace('<image>\n', '').replace('<image>', '')
+
+        instruction = (
+            f"<|im_start|>system\n{self.SYSTEM_PROMPT}<|im_end|>\n"
+            f"<|im_start|>user\n{user_turn}<|im_end|>\n"
+            f"<|im_start|>assistant\n"
+        )
+
         # Temporarily switch padding side
         original_padding_side = self.processor.tokenizer.padding_side
         self.processor.tokenizer.padding_side = "left"
-        
+
         try:
             if has_image and input_images_path:
                 # ========== Images present: process text and images together ==========
+                # Feed Qwen the *PIL* images so its internal pipeline
+                # (resize -> patch_embed -> grid_thw) stays self-consistent.
+                qwen_images = [
+                    Image.open(p).convert("RGB") for p in input_images_path
+                ]
                 inputs_items = self.processor(
                     text=instruction,
-                    images=input_images, ## input_images_path
+                    images=qwen_images,
                     padding=True,
                     return_tensors="pt",
                 )
@@ -493,11 +702,11 @@ class OmniGen2TrainDataset(torch.utils.data.Dataset):
                 image_grid_thw = inputs_items.get('image_grid_thw', None)
             else:
                 # ========== No images: process text only ==========
-                # Remove the <image> markers from the instruction
-                instruction_clean = instruction.replace('<image>\n', '').replace('<image>', '')
-                
+                # ``instruction`` has already been stripped of ``<image>``
+                # and never inserts a ``<|image_pad|>`` when ``has_image``
+                # is False, so we can tokenize it directly.
                 inputs_items = self.processor.tokenizer(
-                    instruction_clean,
+                    instruction,
                     padding=True,
                     return_tensors="pt",
                 )
@@ -543,7 +752,13 @@ class OmniGen2TrainDataset(torch.utils.data.Dataset):
             try:
                 data_item = copy.deepcopy(self.data[current_index])#
                 # pdb.set_trace()
-                if 'id' not in data_item or data_item['id'] is None:
+                # Route SAM samples (txt entries pointing at sam_selection/*)
+                # to process_sam; everything else falls back to the original
+                # panoptic / sft heuristics below.
+                if 'text' in data_item and isinstance(data_item.get('text'), str) \
+                        and 'sam_selection' in data_item['text']:
+                    result = self.process_sam(data_item)
+                elif 'id' not in data_item or data_item['id'] is None:
                     result = self.process_panoptic(data_item)
                 elif data_item['id'] is not None:
                     result = self.process_sft(data_item)
@@ -596,22 +811,28 @@ class OmniGen2Collator():
             return result
         
         def safe_stack(tensor_list):
-            """Safely stack a list of tensors"""
+            """Stack a list of tensors, transparently skipping ``None`` entries.
+
+            Originally this returned the raw list when any entry was None,
+            which broke downstream ``.to(device)`` calls in train.py.
+            Skipping ``None`` is the correct behaviour for Qwen-style
+            ``pixel_values`` / ``image_grid_thw``: those tensors are
+            *per-image*, not per-sample, so samples without an image should
+            simply contribute zero rows.
+            """
             if tensor_list is None:
                 return None
             valid_tensors = [t for t in tensor_list if t is not None]
             if len(valid_tensors) == 0:
                 return None
-            if len(valid_tensors) != len(tensor_list):
-                return tensor_list  # Some entries are None; keep the list as-is
-            
+
             # Ensure each tensor is at least 2D
             processed_tensors = []
             for t in valid_tensors:
                 if t.dim() == 1:
                     t = t.unsqueeze(0)  # (3,) -> (1, 3)
                 processed_tensors.append(t)
-            
+
             return torch.cat(processed_tensors, dim=0)
         
         def safe_pad_sequence(tensor_list, padding_value=0):

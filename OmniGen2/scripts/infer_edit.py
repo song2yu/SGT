@@ -239,7 +239,7 @@ def parse_args():
     parser.add_argument(
         "--input_image",
         type=str,
-        default="../assets/图片3.png",
+        default="../assets/sample.png",
         help="Path to the input image to edit.",
     )
     parser.add_argument(
