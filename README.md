@@ -14,6 +14,8 @@
 
 **SGT (Semantic Generative Tuning)** is the first systematic investigation into generative post-training for Unified Multimodal Models (UMMs). By leveraging **image segmentation as a generative proxy**, SGT bridges the gap between visual understanding and generation, enabling true synergy between the two capabilities within a single architecture.
 
+If you find our project or paper useful, we would greatly appreciate it if you could star this repository or cite our work.
+
 ---
 
 ## Why SGT?
@@ -121,6 +123,17 @@ Optimal batch ratio: **2:1 (Segmentation : VQA)**.
 | Language | 72k |
 | General OCR | 45k |
 | **Total** | **~691k** |
+
+---
+
+## Acknowledgements
+
+We gratefully acknowledge the authors and contributors of the following open-source projects, whose codebases were used in this work:
+
+- **ReCA**: [https://github.com/HorizonWind2004/reconstruction-alignment](https://github.com/HorizonWind2004/reconstruction-alignment)
+- **BAGEL**: [https://github.com/ByteDance-Seed/Bagel](https://github.com/ByteDance-Seed/Bagel)
+- **OmniGen2**: [https://github.com/VectorSpaceLab/OmniGen2](https://github.com/VectorSpaceLab/OmniGen2)
+
 
 ---
 
