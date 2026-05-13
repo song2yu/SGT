@@ -4,7 +4,7 @@
 
 [![Project Page](https://img.shields.io/badge/🌐_Project_Page-Visit-6366f1?style=for-the-badge)](https://song2yu.github.io/sgt-project-page/)
 [![Paper](https://img.shields.io/badge/📄_Paper-PDF-8b5cf6?style=for-the-badge)](#)
-[![Datasets & Models](https://huggingface.co/front/assets/huggingface_logo-noborder.svg)](#)
+[![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-Models_&_Datasets-FFD21E?style=for-the-badge)](#)
 
 </div>
 
