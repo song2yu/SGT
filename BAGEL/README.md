@@ -32,10 +32,10 @@ MAE/inpainting for synergizing understanding and generation.
 
 Key findings:
 
-1. **High-level > low-level**: segmentation gives larger gains in both understanding and generation
+1. **High-level > low-level**: segmentation gives larger gains in visual understanding
    than depth / edge / pixel reconstruction.
-2. **Perception, not reasoning**: visual supervision mainly strengthens vision-centric perception
-   (spatial, hallucination, OCR), rather than abstract reasoning.
+2. **Perception, not reasoning**: visual supervision mainly strengthens perception
+   (spatial, hallucination, vision-centric, general VQA), rather than abstract reasoning (e.g. math, chart)
 3. **Architecture-agnostic**: the gains hold for both **BAGEL** and **OmniGen2**.
 
 ## 📦 Released Artifacts
@@ -49,13 +49,13 @@ Key findings:
 ### Use the SAM-SGT dataset
 
 See [`Two-hot/SAM-SGT`](https://huggingface.co/datasets/Two-hot/SAM-SGT) for the data
-layout and the extraction instructions (files are stored as 5GB tar shards to fit HF limits).
+layout and the extraction instructions.
 
 ## 📊 Highlights
 
 - **+6.02%** average gain over BAGEL on the **CV-Bench** evaluation.
-- Consistent improvements in **spatial reasoning**, **hallucination resistance**, and **OCR**.
-- Generation: gains across **GenEval** dimensions (Position / Color / Counting / Single-Object / etc.).
+- Consistent improvements in **spatial reasoning**, **hallucination resistance**, **vision-centric**, **general VQA**, and **OCR**.
+- Generation: gains across **GenEval** dimensions (Position / Color etc.).
 - Verified on two representative UMM architectures (**BAGEL**, **OmniGen2**).
 
 ## 📝 License
@@ -66,7 +66,7 @@ OmniGen2 (based on Qwen2.5-VL + diffusion transformer).
 
 ## ✍️ Citation
 
-If you find this work useful, please cite our paper (anonymous ECCV 2026 submission, paper ID #3064):
+If you find this work useful, please cite our paper:
 
 ```bibtex
 @article{sgt2026,

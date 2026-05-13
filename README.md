@@ -14,24 +14,15 @@
 
 **SGT (Semantic Generative Tuning)** is the first systematic investigation into generative post-training for Unified Multimodal Models (UMMs). By leveraging **image segmentation as a generative proxy**, SGT bridges the gap between visual understanding and generation, enabling true synergy between the two capabilities within a single architecture.
 
-### Key Results
-
-| Model | CV-Bench↑ | GenEval↑ | GEdit↑ |
-|-------|-----------|----------|--------|
-| BAGEL (baseline) | 73.21 | 78.21 | 6.52 |
-| **SGT-BAGEL (ours)** | **79.23 (+6.02%)** | **80.95** | **6.94** |
-| OmniGen2 (baseline) | 65.94 | 76.58 | 6.63 |
-| **SGT-Gen2 (ours)** | **66.91** | **78.86** | **6.83** |
-
 ---
 
 ## Why SGT?
 
-Existing UMMs optimize understanding and generation independently — this leads to misaligned representations and missed synergies. Previous pixel-level alignment methods (ReCA, ROSS, GenHancer) over-emphasize texture and fail to provide structural semantic guidance.
+Existing UMMs optimize understanding and generation independently — this leads to misaligned representations and missed synergies. Previous pixel-level alignment methods over-emphasize texture and fail to provide structural semantic guidance.
 
-SGT takes a different approach: use **high-level semantic segmentation** as the generative training objective. This simple yet effective proxy:
+SGT takes a different approach: use **high-level segmentation** as the generative training objective. This simple yet effective proxy:
 
-- ✅ Improves multimodal comprehension (vision-centric reasoning, spatial understanding, hallucination resistance)
+- ✅ Improves multimodal perception & understanding
 - ✅ Enhances generative spatial fidelity
 - ✅ Is architecture-agnostic — validated on both BAGEL (7B+7B) and OmniGen2 (3B+4B)
 - ✅ Scales monotonically with more segmentation data
@@ -40,9 +31,9 @@ SGT takes a different approach: use **high-level semantic segmentation** as the 
 
 ## Three Key Observations
 
-1. **High-level semantic tasks dominate** — Segmentation consistently outperforms depth estimation and edge detection as a proxy task.
-2. **Visual supervision enhances perception, not reasoning** — SGT improves vision-centric and spatial tasks; math/chart reasoning remains unaffected.
-3. **Spatial fidelity improves universally** — All proxy levels improve positional generation; segmentation leads overall.
+1. **High-level semantic tasks dominate** — Segmentation consistently outperforms low-level tasks  as a proxy task.
+2. **Visual supervision enhances perception, not reasoning** — SGT improves vision-centric tasks; math/chart reasoning remains unaffected.
+3. **Spatial fidelity improves universally** — All proxy levels improve positional generation.
 
 ---
 ## Usage
@@ -114,19 +105,6 @@ export OMNIGEN2_SAM_ROOT=/your/datasets/sam-qa     # SAM-SGT 图像根
 export OMNIGEN2_QWEN_PROCESSOR_PATH=/your/path/Qwen2.5-VL-3B-Instruct
 bash scripts/train/train_sgt.sh
 ```
-
-
-
----
-## Project Page
-
-👉 **[https://song2yu.github.io/sgt-project-page/](https://song2yu.github.io/sgt-project-page/)**
-
-The project page features:
-- Full-screen animated gallery of SGT-generated images
-- Interactive results tables with ablation studies
-- Method overview and mechanistic analysis
-
 ---
 
 ## Training Data
