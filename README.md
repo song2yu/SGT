@@ -93,8 +93,10 @@ bash shells/train_sgt.sh
 ```bash
 bash setup_gen2.sh
 cd OmniGen2 && source activate_env.sh
+export HF_TOKEN="<your hf token>"
 bash shells/download_ckpt.sh
 bash shells/download_gen2.sh
+bash shells/download_pretrained.sh # for training
 ```
 ### for OmniGen2 Inference
 ```bash
@@ -105,7 +107,13 @@ PYTHONPATH=. python scripts/infer_text2image.py
 # for image2image
 PYTHONPATH=. python scripts/infer_edit.py 
 ```
-
+### for OmniGen2 Training
+Modify the paths of llava-ov and sam.
+```bash
+export OMNIGEN2_SAM_ROOT=/your/datasets/sam-qa     # SAM-SGT 图像根
+export OMNIGEN2_QWEN_PROCESSOR_PATH=/your/path/Qwen2.5-VL-3B-Instruct
+bash scripts/train/train_sgt.sh
+```
 
 
 
