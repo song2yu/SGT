@@ -103,7 +103,7 @@ PYTHONPATH=. python scripts/infer_edit.py
 ### for OmniGen2 Training
 Modify the paths of llava-ov and sam.
 ```bash
-export OMNIGEN2_SAM_ROOT=/your/datasets/sam-qa     # SAM-SGT 图像根
+export OMNIGEN2_SAM_ROOT=/your/datasets/sam-qa     
 export OMNIGEN2_QWEN_PROCESSOR_PATH=/your/path/Qwen2.5-VL-3B-Instruct
 bash scripts/train/train_sgt.sh
 ```
