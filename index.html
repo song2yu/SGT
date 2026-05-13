@@ -110,9 +110,53 @@ nav a:hover{color:var(--indigo)}
 /* centered title overlay */
 .gallery-title-overlay{
   position:absolute;
+  left:50%;
+  bottom:10.5rem;
+  transform:translateX(-50%);
   z-index:20;
+  width:auto;
+  max-width:none;
+  padding:0 1.5rem;
   text-align:center;
   pointer-events:none;
+  white-space:nowrap;
+}
+/* top title overlay (gtag + h2 above the marquee) */
+.gallery-title-top{
+  position:absolute;
+  left:50%;
+  top:10rem;
+  transform:translateX(-50%);
+  z-index:20;
+  width:100%;
+  max-width:900px;
+  padding:0 1.5rem;
+  text-align:center;
+  pointer-events:none;
+}
+.gallery-title-top .gtag{
+  display:inline-block;
+  padding:0.35rem 1.1rem;
+  background:rgba(99,102,241,0.25);
+  border:1px solid rgba(99,102,241,0.5);
+  border-radius:99px;
+  font-size:0.78rem;font-weight:700;letter-spacing:0.1em;
+  color:#a5b4fc;text-transform:uppercase;
+  margin-bottom:0.9rem;
+  backdrop-filter:blur(8px);
+}
+.gallery-title-top h2{
+  font-size:clamp(1.8rem,3.6vw,2.8rem);
+  font-weight:900;line-height:1.15;
+  color:#ffffff;
+  letter-spacing:-0.02em;
+  text-shadow:0 4px 32px rgba(0,0,0,0.85);
+  margin:0;
+}
+.gallery-title-top h2 span{
+  background:linear-gradient(135deg,#a5b4fc,#c084fc,#f9a8d4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
 }
 .gallery-title-overlay .gtag{
   display:inline-block;
@@ -122,16 +166,16 @@ nav a:hover{color:var(--indigo)}
   border-radius:99px;
   font-size:0.78rem;font-weight:700;letter-spacing:0.1em;
   color:#a5b4fc;text-transform:uppercase;
-  margin-bottom:1.2rem;
+  margin-bottom:0.8rem;
   backdrop-filter:blur(8px);
 }
 .gallery-title-overlay h2{
-  font-size:clamp(1.8rem,4vw,3rem);
+  font-size:clamp(1.6rem,3.2vw,2.4rem);
   font-weight:900;line-height:1.15;
   color:#ffffff;
   letter-spacing:-0.02em;
-  text-shadow:0 4px 32px rgba(0,0,0,0.6);
-  margin-bottom:0.6rem;
+  text-shadow:0 4px 32px rgba(0,0,0,0.85);
+  margin-bottom:0.5rem;
 }
 .gallery-title-overlay h2 span{
   background:linear-gradient(135deg,#a5b4fc,#c084fc,#f9a8d4);
@@ -139,12 +183,15 @@ nav a:hover{color:var(--indigo)}
   background-clip:text;
 }
 .gallery-title-overlay p{
-  font-size:1rem;color:rgba(255,255,255,0.65);max-width:520px;
+  font-size:0.95rem;color:rgba(255,255,255,0.75);
+  max-width:none;margin:0 auto;
+  text-shadow:0 2px 12px rgba(0,0,0,0.7);
+  white-space:nowrap;
 }
 
 /* scroll hint arrow */
 .scroll-hint{
-  position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:1.2rem;left:50%;transform:translateX(-50%);
   z-index:20;display:flex;flex-direction:column;align-items:center;gap:0.4rem;
   animation:bounce 2s infinite;
   pointer-events:none;
@@ -313,13 +360,13 @@ h1.paper-title{
 /* ─── SECTIONS ───────────────────────────────────────── */
 section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
 .section-label{
-  font-size:0.72rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
+  font-size:0.95rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
   background:linear-gradient(135deg,var(--indigo),var(--purple));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:0.5rem;
+  margin-bottom:0.7rem;
 }
-.section-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;letter-spacing:-0.015em;margin-bottom:0.9rem;color:var(--text);}
-.section-desc{color:var(--text2);max-width:720px;font-size:1rem}
+.section-title{font-size:clamp(2.1rem,3.6vw,2.9rem);font-weight:800;letter-spacing:-0.015em;margin-bottom:1.1rem;color:var(--text);line-height:1.2;}
+.section-desc{color:var(--text2);font-size:1.15rem;line-height:1.65;}
 
 /* ─── ABSTRACT ───────────────────────────────────────── */
 #abstract-wrap{background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);padding:5rem 1.5rem}
@@ -337,12 +384,12 @@ section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
   content:'';position:absolute;bottom:-80px;right:-80px;width:220px;height:220px;
   background:radial-gradient(circle,rgba(139,92,246,0.08),transparent 70%);border-radius:50%;
 }
-.abstract-card p{font-size:1.03rem;line-height:1.9;color:var(--text2)}
+.abstract-card p{font-size:1.2rem;line-height:1.9;color:var(--text2)}
 .abstract-card p em{color:var(--indigo);font-style:normal;font-weight:700}
 .abstract-label{
-  font-size:0.72rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
+  font-size:0.95rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
   background:linear-gradient(135deg,var(--indigo),var(--purple));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.8rem;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.9rem;
 }
 
 /* ─── CARDS ──────────────────────────────────────────── */
@@ -354,6 +401,29 @@ section{padding:5rem 1.5rem;max-width:1100px;margin:0 auto}
   box-shadow:0 2px 10px rgba(99,102,241,0.05);
 }
 .card:hover{border-color:var(--indigo);transform:translateY(-5px);box-shadow:0 14px 36px rgba(99,102,241,0.14);}
+.card-head{display:flex;align-items:center;gap:0.7rem;margin-bottom:0.7rem;}
+.card-head .card-icon{font-size:1.8rem;margin:0;line-height:1;flex-shrink:0;}
+.card-head h3{margin:0;}
+.feat-list{list-style:none;padding:0;margin:0.2rem 0 0.4rem;}
+.feat-list li{
+  position:relative;
+  padding:0.35rem 0 0.35rem 1.6rem;
+  font-size:0.9rem;color:var(--text2);line-height:1.55;
+  border-bottom:1px dashed var(--border);
+}
+.feat-list li:last-child{border-bottom:none;}
+.feat-list li::before{
+  content:'✓';
+  position:absolute;left:0;top:0.35rem;
+  width:1.1rem;height:1.1rem;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:0.7rem;font-weight:800;
+  color:#fff;
+  background:linear-gradient(135deg,var(--indigo),var(--purple));
+  border-radius:50%;
+  line-height:1;
+}
+.feat-list li strong{color:var(--text);font-weight:700;}
 .card-icon{font-size:2rem;margin-bottom:0.8rem}
 .card h3{font-size:1.02rem;font-weight:700;margin-bottom:0.5rem;color:var(--text)}
 .card p{font-size:0.88rem;color:var(--text2);line-height:1.65}
@@ -499,11 +569,15 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   <div style="position:absolute;inset:0;z-index:5;pointer-events:none;
     background:linear-gradient(to right, #0d0d1a 0%, transparent 12%, transparent 88%, #0d0d1a 100%);"></div>
 
-  <!-- center title -->
-  <div class="gallery-title-overlay">
-    <div class="gtag">✦ SGT · ECCV 2026</div>
+  <!-- top title overlay -->
+  <div class="gallery-title-top">
+    <div class="gtag">✦ SGT · 2026</div>
     <h2>Generated by <span>SGT</span></h2>
-    <p>Semantic Generative Tuning enables high-fidelity, structurally coherent image synthesis</p>
+  </div>
+
+  <!-- bottom subtitle overlay -->
+  <div class="gallery-title-overlay">
+    <p>Semantic Generative Tuning enables high-fidelity, structurally coherent image synthesis.</p>
   </div>
 
   <!-- scroll hint -->
@@ -518,7 +592,7 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 <!--  HERO                                              -->
 <!-- ═══════════════════════════════════════════════════ -->
 <section id="hero">
-  <div class="venue-badge">ECCV 2026 · Submission #3064</div>
+  <div class="venue-badge">arXiv 2026 · Preprint</div>
 
   <h1 class="paper-title">
     <span class="title-line1">Semantic Generative Tuning</span><br/>
@@ -531,9 +605,10 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   </p>
 
   <div class="authors">
-    <span class="author">Anonymous Authors<sup>†</sup></span>
+    <span class="author">Songsong Yu<sup>1</sup><sup>,2</sup>, Yuxin Chen<sup>2</sup>, Ying Shan<sup>2</sup>, Yanwei Li<sup>1,</sup><sup>†</sup></span>
   </div>
-  <p class="affiliations"><sup>†</sup>Anonymous ECCV 2026 Submission &nbsp;·&nbsp; Paper #3064</p>
+  <p class="affiliations"> <sup>1</sup>Shanghai Jiao Tong university <sup>2</sup>Tencent ARC Lab <sup>†</sup>Corresponding Author&nbsp;·&nbsp; </p>
+
 
   <div class="btn-row">
     <a class="btn btn-primary" href="#" onclick="return false;">
@@ -542,7 +617,7 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
     </a>
     <a class="btn btn-outline" href="https://github.com/song2yu/sgt-project-page" target="_blank">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.920.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-      Code (Coming Soon)
+      Code
     </a>
     <a class="btn btn-outline" href="#citation">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
@@ -555,10 +630,7 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
       <div class="num" data-target="6.02">0%</div>
       <div class="lbl">CV-Bench gain<br/>(BAGEL baseline)</div>
     </div>
-    <div class="stat-chip">
-      <div class="num">90.0</div>
-      <div class="lbl">GenEval score<br/>SGT-BAGEL</div>
-    </div>
+
     <div class="stat-chip">
       <div class="num">190k</div>
       <div class="lbl">SGT training<br/>samples (SAM)</div>
@@ -569,23 +641,6 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
     </div>
   </div>
 </section>
-
-<div class="section-divider"></div>
-
-<!-- ═══════════════════════════════════════════════════ -->
-<!--  TEASER IMAGE                                      -->
-<!-- ═══════════════════════════════════════════════════ -->
-<div style="max-width:900px;margin:0 auto;padding:0 1.5rem 2rem;" class="reveal">
-  <div class="fig-real">
-    <img src="assets/teaser.png" alt="Figure 1: Comparison of alignment strategies for UMMs"/>
-    <div class="fig-caption">
-      <strong>Figure 1:</strong> Comparison of alignment strategies for UMMs.
-      (a) Traditional UMMs optimize understanding and generation separately, resulting in low synergy.
-      (b) Recent pixel-level attempts over-focus on high-frequency details.
-      (c) Our proposed SGT achieves semantic-level alignment, enabling true synergy between understanding and generation.
-    </div>
-  </div>
-</div>
 
 <div class="section-divider"></div>
 
@@ -627,22 +682,40 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   <div class="section-label">Motivation</div>
   <div class="section-title">Why Existing UMMs Fall Short</div>
   <p class="section-desc">We compare three paradigms for training unified multimodal models and pinpoint the critical gap.</p>
+
+  <!-- Teaser figure illustrating the three paradigms -->
+  <div class="fig-real" style="margin-top:2rem;margin-bottom:2.5rem;">
+    <img src="assets/teaser.png" alt="Figure 1: Comparison of alignment strategies for UMMs"/>
+    <div class="fig-caption">
+      <strong>Figure 1:</strong> Comparison of alignment strategies for UMMs.
+      (a) Traditional UMMs optimize understanding and generation separately, resulting in low synergy.
+      (b) Recent pixel-level attempts over-focus on high-frequency details.
+      (c) Our proposed SGT achieves semantic-level alignment, enabling true synergy between understanding and generation.
+    </div>
+  </div>
+
   <div class="three-col">
     <div class="card">
-      <div class="card-icon">⚠️</div>
-      <h3>Traditional UMMs</h3>
+      <div class="card-head">
+        <div class="card-icon">⚠️</div>
+        <h3>Traditional UMMs</h3>
+      </div>
       <p>Understanding and generation are optimized independently with divergent supervisory signals, resulting in misaligned representations and <strong>no synergy</strong> between the two capabilities.</p>
       <span class="tag bad">Misaligned</span>
     </div>
     <div class="card">
-      <div class="card-icon">🔍</div>
-      <h3>Pixel-Level Alignment</h3>
-      <p>Recent methods (ReCA, ROSS, GenHancer) use pixel-space reconstruction as a proxy. While yielding some gains, this over-emphasizes textures and distracts from semantic reasoning.</p>
+      <div class="card-head">
+        <div class="card-icon">🔍</div>
+        <h3>Pixel-Level Alignment</h3>
+      </div>
+      <p>Recent methods use pixel-space reconstruction as a proxy. While yielding some gains, this over-emphasizes textures and distracts from semantic reasoning.</p>
       <span class="tag ok">Suboptimal</span>
     </div>
     <div class="card">
-      <div class="card-icon">✨</div>
-      <h3>Semantic Generative Tuning</h3>
+      <div class="card-head">
+        <div class="card-icon">✨</div>
+        <h3>Semantic Generative Tuning</h3>
+      </div>
       <p>SGT leverages <strong>image segmentation</strong> as a generative proxy — high-level semantic structure that naturally bridges understanding and generation through shared semantic space.</p>
       <span class="tag best">Optimal ✓</span>
     </div>
@@ -702,15 +775,27 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2rem;">
     <div class="card">
-      <div class="card-icon">🏗️</div>
-      <h3>BAGEL (7B + 7B)</h3>
-      <p>Mixture of Transformers with native interleaved training. Layer-wise feature sharing throughout the network enables seamless SGT integration.</p>
+      <div class="card-head">
+        <div class="card-icon">🏗️</div>
+        <h3>BAGEL (7B + 7B)</h3>
+      </div>
+      <ul class="feat-list">
+        <li><strong>Highly native design.</strong> Mixture of Transformers with native interleaved training across understanding and generation.</li>
+        <li><strong>Shared attention.</strong> Understanding and generation streams interact through shared attention, enabling deep cross-modal fusion.</li>
+        <li><strong>Larger scale.</strong> Dual-7B parameter capacity provides strong representational power for SGT integration.</li>
+      </ul>
       <span class="tag best">Large-scale UMM</span>
     </div>
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <h3>OmniGen2 (3B + 4B)</h3>
-      <p>Frozen pretrained VLM paired with a diffusion module trained from scratch. Hidden states serve as semantic guidance for the generative module.</p>
+      <div class="card-head">
+        <div class="card-icon">⚡</div>
+        <h3>OmniGen2 (3B + 4B)</h3>
+      </div>
+      <ul class="feat-list">
+        <li><strong>Frozen VLM.</strong> The pretrained VLM is kept frozen; only the diffusion head is trained.</li>
+        <li><strong>Feature sharing.</strong> Hidden states are shared as semantic guidance, bridging understanding and generation in series.</li>
+        <li><strong>Lightweight parameters.</strong> Compact 3B + 4B configuration delivers efficient training and inference.</li>
+      </ul>
       <span class="tag best">Efficient UMM</span>
     </div>
   </div>
@@ -725,6 +810,19 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   <div class="section-label">Key Findings</div>
   <div class="section-title">Three Empirical Observations</div>
   <p class="section-desc">Our hierarchical task study across BAGEL and OmniGen2 reveals consistent patterns guiding SGT's design.</p>
+
+  <!-- Figures: stacked vertically, enlarged -->
+  <div class="fig-row" style="grid-template-columns:1fr;gap:2rem;max-width:1100px;margin:2.5rem auto 0;">
+    <div class="fig-real" style="margin-top:0;">
+      <img src="assets/und6dim.png" alt="Figure 3a: Understanding capability gains"/>
+      <div class="fig-caption"><strong>Fig. 3a:</strong> Understanding capability gains across proxy task levels on BAGEL and OmniGen2. Segmentation (high-level) consistently yields the largest gains.</div>
+    </div>
+    <div class="fig-real" style="margin-top:0;">
+      <img src="assets/gen6dim.png" alt="Figure 3b: Generation capability gains"/>
+      <div class="fig-caption"><strong>Fig. 3b:</strong> Generation capability gains. All proxy tasks improve position-aware generation; segmentation leads overall.</div>
+    </div>
+  </div>
+
   <div class="obs-grid">
     <div class="obs-card">
       <div class="obs-num">Observation 01</div>
@@ -740,16 +838,6 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
       <div class="obs-num">Observation 03</div>
       <h3>Spatial fidelity improves universally</h3>
       <p>Regardless of semantic granularity, all proxy tasks consistently improve generative spatial fidelity — especially for position-aware tasks. Reconstructing visual structure forces accurate spatial layouts, naturally boosting positional prompt adherence.</p>
-    </div>
-  </div>
-  <div class="fig-row">
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/und6dim.png" alt="Figure 3a: Understanding capability gains"/>
-      <div class="fig-caption"><strong>Fig. 3a:</strong> Understanding capability gains across proxy task levels on BAGEL and OmniGen2. Segmentation (high-level) consistently yields the largest gains.</div>
-    </div>
-    <div class="fig-real" style="margin-top:0;">
-      <img src="assets/gen6dim.png" alt="Figure 3b: Generation capability gains"/>
-      <div class="fig-caption"><strong>Fig. 3b:</strong> Generation capability gains. All proxy tasks improve position-aware generation; segmentation leads overall.</div>
     </div>
   </div>
 </section>
@@ -889,12 +977,11 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   <p class="section-desc">If you find SGT useful in your research, please consider citing our work.</p>
   <div class="bibtex-block">
     <button class="copy-btn" onclick="copyBibtex()">Copy</button>
-    <pre id="bibtex-text">@inproceedings{anonymous2026sgt,
+    <pre id="bibtex-text">@article{2026sgt,
   title     = {Semantic Generative Tuning for Unified Multimodal Models},
-  author    = {Anonymous Authors},
-  booktitle = {European Conference on Computer Vision (ECCV)},
+  author    = {Songsong Yu, Yuxin Chen, Ying Shan, Yanwei Li},
+  journal   = {arXiv preprint},
   year      = {2026},
-  note      = {Submission \#3064}
 }</pre>
   </div>
 </section>
@@ -903,7 +990,7 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 
 <footer>
   <p style="font-weight:600;color:var(--text);">SGT · Semantic Generative Tuning for Unified Multimodal Models</p>
-  <p style="margin-top:0.3rem;">ECCV 2026 Submission · Anonymous Review</p>
+  <p style="margin-top:0.3rem;">arXiv 2026 Preprint · Under Review</p>
 </footer>
 
 <!-- ════════════════════════════════════════════════════ -->
