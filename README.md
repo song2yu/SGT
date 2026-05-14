@@ -34,14 +34,17 @@ SGT takes a different approach: use **high-level segmentation** as the generativ
 We probe the effect of three proxy task levels (edge / depth / segmentation) on both **understanding** and **generation** capabilities of BAGEL and OmniGen2.
 
 <p align="center">
-  <img src="assets/und6dim.png" alt="Understanding capability gains across proxy task levels" width="48%"/>
-  &nbsp;&nbsp;
-  <img src="assets/gen6dim.png" alt="Generation capability gains across proxy task levels" width="48%"/>
+  <img src="assets/und6dim.png" alt="Understanding capability gains across proxy task levels" width="85%"/>
+</p>
+<p align="center">
+  <em>Understanding capability gains across proxy task levels on BAGEL and OmniGen2.</em>
 </p>
 
 <p align="center">
-  <em>Left:</em> Understanding capability gains across proxy task levels.
-  <em>Right:</em> Generation capability gains across proxy task levels.
+  <img src="assets/gen6dim.png" alt="Generation capability gains across proxy task levels" width="85%"/>
+</p>
+<p align="center">
+  <em>Generation capability gains across proxy task levels on BAGEL and OmniGen2.</em>
 </p>
 
 Three consistent observations emerge:
