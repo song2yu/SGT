@@ -29,13 +29,26 @@ SGT takes a different approach: use **high-level segmentation** as the generativ
 - ✅ Is architecture-agnostic — validated on both BAGEL (7B+7B) and OmniGen2 (3B+4B)
 - ✅ Scales monotonically with more segmentation data
 
----
+### Empirical Findings
 
-## Three Key Observations
+We probe the effect of three proxy task levels (edge / depth / segmentation) on both **understanding** and **generation** capabilities of BAGEL and OmniGen2.
 
-1. **High-level semantic tasks dominate** — Segmentation consistently outperforms low-level tasks  as a proxy task.
-2. **Visual supervision enhances perception, not reasoning** — SGT improves vision-centric tasks; math/chart reasoning remains unaffected.
-3. **Spatial fidelity improves universally** — All proxy levels improve positional generation.
+<p align="center">
+  <img src="assets/und6dim.png" alt="Understanding capability gains across proxy task levels" width="48%"/>
+  &nbsp;&nbsp;
+  <img src="assets/gen6dim.png" alt="Generation capability gains across proxy task levels" width="48%"/>
+</p>
+
+<p align="center">
+  <em>Left:</em> Understanding capability gains across proxy task levels.
+  <em>Right:</em> Generation capability gains across proxy task levels.
+</p>
+
+Three consistent observations emerge:
+
+1. **High-level semantic tasks dominate.** Segmentation consistently outperforms mid-level (depth) and low-level (edge) tasks across all understanding benchmarks. High-level supervision aligns with perception demands, while texture-focused tasks distract the model with irrelevant details.
+2. **Visual supervision enhances perception, not reasoning.** Generative tuning fortifies vision-centric tasks (spatial reasoning, hallucination resistance) while math/chart reasoning remains unaffected — visual supervision improves representation quality but does not impart logical priors.
+3. **Spatial fidelity improves universally.** Regardless of semantic granularity, all proxy tasks improve generative spatial fidelity, especially for position-aware prompts. Reconstructing visual structure forces accurate spatial layouts.
 
 ---
 ## Usage
