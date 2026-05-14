@@ -37,14 +37,7 @@ We probe the effect of three proxy task levels (edge / depth / segmentation) on 
   <img src="assets/und6dim.png" alt="Understanding capability gains across proxy task levels" width="85%"/>
 </p>
 <p align="center">
-  <em>Understanding capability gains across proxy task levels on BAGEL and OmniGen2.</em>
-</p>
-
-<p align="center">
   <img src="assets/gen6dim.png" alt="Generation capability gains across proxy task levels" width="85%"/>
-</p>
-<p align="center">
-  <em>Generation capability gains across proxy task levels on BAGEL and OmniGen2.</em>
 </p>
 
 Three consistent observations emerge:
