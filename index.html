@@ -82,195 +82,6 @@ nav a:hover{color:var(--indigo)}
 /* ─── PAGE WRAPPER ───────────────────────────────────── */
 .page{position:relative;z-index:2}
 
-/* ════════════════════════════════════════════════════════
-   GALLERY SHOWCASE (FULL-SCREEN OPENING)
-════════════════════════════════════════════════════════ */
-#gallery-showcase{
-  position:relative;
-  width:100vw;
-  height:100vh;
-  min-height:720px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(180deg, #0d0d1a 0%, #1a1030 60%, #0f1525 100%);
-  z-index:2;
-}
-
-/* overlay gradient fading into the rest of the page */
-#gallery-showcase::after{
-  content:'';
-  position:absolute;
-  bottom:0;left:0;right:0;
-  height:220px;
-  background:linear-gradient(to bottom, transparent, var(--bg));
-  z-index:10;
-  pointer-events:none;
-}
-
-/* bottom subtitle: anchored relative to the centered marquee */
-.gallery-title-overlay{
-  position:absolute;
-  left:50%;
-  top:calc(50% + 205px);
-  transform:translateX(-50%);
-  z-index:20;
-  width:auto;
-  max-width:none;
-  padding:0 1.5rem;
-  text-align:center;
-  pointer-events:none;
-  white-space:nowrap;
-}
-/* top title: anchored relative to the centered marquee */
-.gallery-title-top{
-  position:absolute;
-  left:50%;
-  top:calc(50% - 335px);
-  transform:translateX(-50%);
-  z-index:20;
-  width:100%;
-  max-width:900px;
-  padding:0 1.5rem;
-  text-align:center;
-  pointer-events:none;
-}
-.gallery-title-top .gtag{
-  display:inline-block;
-  padding:0.35rem 1.1rem;
-  background:rgba(99,102,241,0.25);
-  border:1px solid rgba(99,102,241,0.5);
-  border-radius:99px;
-  font-size:0.78rem;font-weight:700;letter-spacing:0.1em;
-  color:#a5b4fc;text-transform:uppercase;
-  margin-bottom:0.9rem;
-  backdrop-filter:blur(8px);
-}
-.gallery-title-top h2{
-  font-size:clamp(1.8rem,3.6vw,2.8rem);
-  font-weight:900;line-height:1.15;
-  color:#ffffff;
-  letter-spacing:-0.02em;
-  text-shadow:0 4px 32px rgba(0,0,0,0.85);
-  margin:0;
-}
-.gallery-title-top h2 span{
-  background:linear-gradient(135deg,#a5b4fc,#c084fc,#f9a8d4);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.gallery-title-overlay .gtag{
-  display:inline-block;
-  padding:0.35rem 1.1rem;
-  background:rgba(99,102,241,0.25);
-  border:1px solid rgba(99,102,241,0.5);
-  border-radius:99px;
-  font-size:0.78rem;font-weight:700;letter-spacing:0.1em;
-  color:#a5b4fc;text-transform:uppercase;
-  margin-bottom:0.8rem;
-  backdrop-filter:blur(8px);
-}
-.gallery-title-overlay h2{
-  font-size:clamp(1.6rem,3.2vw,2.4rem);
-  font-weight:900;line-height:1.15;
-  color:#ffffff;
-  letter-spacing:-0.02em;
-  text-shadow:0 4px 32px rgba(0,0,0,0.85);
-  margin-bottom:0.5rem;
-}
-.gallery-title-overlay h2 span{
-  background:linear-gradient(135deg,#a5b4fc,#c084fc,#f9a8d4);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.gallery-title-overlay p{
-  font-size:0.95rem;color:rgba(255,255,255,0.75);
-  max-width:none;margin:0 auto;
-  text-shadow:0 2px 12px rgba(0,0,0,0.7);
-  white-space:nowrap;
-}
-
-/* scroll hint arrow */
-.scroll-hint{
-  position:absolute;bottom:1.2rem;left:50%;transform:translateX(-50%);
-  z-index:20;display:flex;flex-direction:column;align-items:center;gap:0.4rem;
-  animation:bounce 2s infinite;
-  pointer-events:none;
-}
-.scroll-hint span{font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45)}
-.scroll-hint svg{width:20px;height:20px;stroke:rgba(255,255,255,0.4);fill:none;stroke-width:2}
-@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
-
-/* ── Marquee rows ── */
-.marquee-wrapper{
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  padding:0;
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  z-index:1;
-}
-
-.marquee-row{
-  display:flex;
-  width:max-content;
-  gap:10px;
-  will-change:transform;
-}
-.marquee-row.row-ltr { animation: marquee-ltr 60s linear infinite; }
-.marquee-row.row-rtl { animation: marquee-rtl 70s linear infinite; }
-
-@keyframes marquee-ltr{
-  0%  { transform: translateX(0); }
-  100%{ transform: translateX(-50%); }
-}
-@keyframes marquee-rtl{
-  0%  { transform: translateX(-50%); }
-  100%{ transform: translateX(0); }
-}
-
-/* pause on hover */
-#gallery-showcase:hover .marquee-row{ animation-play-state: paused; }
-
-.marquee-item{
-  flex-shrink:0;
-  width:260px;
-  height:170px;
-  border-radius:14px;
-  overflow:hidden;
-  border:1.5px solid rgba(255,255,255,0.08);
-  box-shadow:0 4px 20px rgba(0,0,0,0.5);
-  position:relative;
-  transition:transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-}
-.marquee-item:hover{
-  transform:scale(1.06) translateY(-4px);
-  border-color:rgba(99,102,241,0.6);
-  box-shadow:0 12px 36px rgba(99,102,241,0.35);
-  z-index:5;
-}
-.marquee-item img{
-  width:100%;height:100%;
-  object-fit:cover;
-  display:block;
-  transition:transform 0.4s ease;
-}
-.marquee-item:hover img{ transform:scale(1.08); }
-
-/* dim overlay so center text reads well */
-.marquee-row::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:transparent;
-  pointer-events:none;
-}
-
 /* ─── HERO ───────────────────────────────────────────── */
 #hero{
   min-height:100vh;
@@ -599,10 +410,6 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   .abstract-card{padding:1.6rem}
   nav{gap:0.8rem}
   nav a{font-size:0.72rem}
-  .marquee-item{width:180px;height:120px;}
-  .gallery-title-top{top:calc(50% - 270px)}
-  .gallery-title-overlay{top:calc(50% + 155px)}
-  .gallery-title-overlay p{white-space:normal;max-width:90vw;}
 }
   </style>
 </head>
@@ -626,40 +433,6 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 
 <div class="page">
 
-<!-- ════════════════════════════════════════════════════
-     GALLERY SHOWCASE — full-screen opening
-════════════════════════════════════════════════════ -->
-<section id="gallery-showcase">
-
-  <!-- 2 rows, no overlapping images -->
-  <div class="marquee-wrapper">
-    <div class="marquee-row row-ltr" id="row1"><!-- filled by JS --></div>
-    <div class="marquee-row row-rtl" id="row2"><!-- filled by JS --></div>
-  </div>
-
-  <!-- dark vignette left/right so images fade nicely -->
-  <div style="position:absolute;inset:0;z-index:5;pointer-events:none;
-    background:linear-gradient(to right, #0d0d1a 0%, transparent 12%, transparent 88%, #0d0d1a 100%);"></div>
-
-  <!-- top title overlay -->
-  <div class="gallery-title-top">
-    <div class="gtag">✦ SGT · 2026</div>
-    <h2><span>Semantic Generative Tuning</span><br/>for Unified Multimodal Models</h2>
-  </div>
-
-  <!-- bottom subtitle overlay -->
-  <div class="gallery-title-overlay">
-    <p>Semantic Generative Tuning enables high-fidelity, structurally coherent image synthesis.</p>
-  </div>
-
-  <!-- scroll hint -->
-  <div class="scroll-hint">
-    <span>scroll</span>
-    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-  </div>
-
-</section>
-
 <!-- ═══════════════════════════════════════════════════ -->
 <!--  HERO                                              -->
 <!-- ═══════════════════════════════════════════════════ -->
@@ -676,9 +449,9 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   </p>
 
   <div class="authors">
-    <span class="author">Songsong Yu<sup>1</sup><sup>,2</sup>, Yuxin Chen<sup>2</sup>, Ying Shan<sup>2</sup>, Yanwei Li<sup>1,</sup><sup>†</sup></span>
+    <span class="author">Songsong Yu<sup>1</sup><sup>,2</sup>, Yuxin Chen<sup>2</sup>, Ying Shan<sup>2</sup>, Yanwei Li<sup>1,</sup><sup>✉️</sup></span>
   </div>
-  <p class="affiliations"> <sup>1</sup>Shanghai Jiao Tong University <sup>2</sup>Tencent ARC Lab <sup>†</sup>Corresponding Author&nbsp;&nbsp; </p>
+  <p class="affiliations"> <sup>1</sup>Shanghai Jiao Tong University <sup>2</sup>Tencent ARC Lab &nbsp;&nbsp; </p>
 
 
   <div class="btn-row">
@@ -809,7 +582,7 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
   </p>
   
   <div class="fig-real figure-white-bg" style="margin-top:2rem;">
-    <img src="assets/pipeline.png" alt="Figure 2: SGT Training Pipeline Overview"/>
+    <img src="assets/pipe.png" alt="Figure 2: SGT Training Pipeline Overview"/>
     <div class="fig-caption">
       <strong>Figure 2:</strong> Overview of the SGT generative tuning paradigm.
       An RGB image and a textual instruction are processed by vision and text encoders.
@@ -954,7 +727,7 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 
   <div style="margin-top:3.5rem;" class="reveal">
     <div class="section-label">Ablation Study</div>
-    <div class="section-title" style="font-size:1.5rem;">Effect of Proxy Task Choice</div>
+    <div class="section-title">Effect of Proxy Task Choice</div>
     <p class="section-desc">SGT yields the largest gains across understanding benchmarks while achieving competitive generation performance.</p>
     <div class="table-wrap">
       <table>
@@ -1071,30 +844,6 @@ footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);c
 <!--  SCRIPTS                                            -->
 <!-- ════════════════════════════════════════════════════ -->
 <script>
-/* ── BUILD MARQUEE ROWS ──────────────────────────────── */
-(function(){
-  const all = Array.from({length:25}, (_,i) => `assets/图片${i+1}.png`);
-  // strict split: row1 = 1–13, row2 = 14–25 (zero overlap)
-  const row1 = all.slice(0, 13);
-  const row2 = all.slice(13);   // 12 images
-
-  function buildRow(el, imgs){
-    // duplicate for seamless loop
-    const full = [...imgs, ...imgs];
-    full.forEach(src => {
-      const div = document.createElement('div');
-      div.className = 'marquee-item';
-      const img = document.createElement('img');
-      img.src = src; img.alt = ''; img.loading = 'lazy';
-      div.appendChild(img);
-      el.appendChild(div);
-    });
-  }
-
-  buildRow(document.getElementById('row1'), row1);
-  buildRow(document.getElementById('row2'), row2);
-})();
-
 /* ── ANIMATED LIGHT-THEME BACKGROUND ────────────────── */
 (function(){
   const canvas = document.getElementById('bg-canvas');
