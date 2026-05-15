@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Project Page](https://img.shields.io/badge/🌐_Project_Page-Visit-6366f1?style=for-the-badge)](https://song2yu.github.io/sgt/)
+[![Project Page](https://img.shields.io/badge/🌐_Project_Page-Visit-6366f1?style=for-the-badge)](https://song2yu.github.io/SGT/)
 [![Paper](https://img.shields.io/badge/📄_Paper-PDF-8b5cf6?style=for-the-badge)](#)
 [![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-Models_&_Datasets-FFD21E?style=for-the-badge)](#)
 
@@ -167,7 +167,7 @@ We gratefully acknowledge the authors and contributors of the following open-sou
 ---
 
 <div align="center">
-  <a href="https://song2yu.github.io/sgt-project-page/">
-    <img src="https://img.shields.io/badge/🌐_Visit_Project_Page-song2yu.github.io/sgt--project--page-6366f1?style=flat-square&labelColor=1e1b4b" alt="Project Page"/>
+  <a href="https://song2yu.github.io/SGT/">
+    <img src="https://img.shields.io/badge/🌐_Visit_Project_Page-song2yu.github.io/SGT-6366f1?style=flat-square&labelColor=1e1b4b" alt="Project Page"/>
   </a>
 </div>
