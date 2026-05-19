@@ -3,8 +3,8 @@
 <div align="center">
 
 [![Project Page](https://img.shields.io/badge/🌐_Project_Page-Visit-6366f1?style=for-the-badge)](https://song2yu.github.io/SGT/)
-[![Paper](https://img.shields.io/badge/📄_Paper-PDF-8b5cf6?style=for-the-badge)](#)
-[![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-Models_&_Datasets-FFD21E?style=for-the-badge)](#)
+[![Paper](https://img.shields.io/badge/📄_Paper-arXiv-8b5cf6?style=for-the-badge)](https://arxiv.org/pdf/2605.18714)
+[![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-SAM--SGT_Dataset-FFD21E?style=for-the-badge)](https://huggingface.co/datasets/Two-hot/SAM-SGT)
 
 </div>
 
@@ -156,10 +156,10 @@ We gratefully acknowledge the authors and contributors of the following open-sou
 ## Citation
 
 ```bibtex
-@inproceedings{2026SGT,
+@article{yu2026sgt,
   title     = {Semantic Generative Tuning for Unified Multimodal Models},
-  author    = {Songsong Yu, Yuxin Chen, Ying Shan, and Yanwei Li},
-  booktitle = {arxiv},
+  author    = {Yu, Songsong and Chen, Yuxin and Shan, Ying and Li, Yanwei},
+  journal   = {arXiv preprint arXiv:2605.18714},
   year      = {2026},
 }
 ```
