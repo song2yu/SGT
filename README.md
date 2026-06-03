@@ -2,6 +2,12 @@
 
 <div align="center">
 
+**[Songsong Yu](https://song2yu.github.io/)<sup>1,2</sup>, [Yuxin Chen](https://uason-chen.github.io/)<sup>2</sup>, Ying Shan<sup>2</sup>, [Yanwei Li](https://yanwei-li.com/)<sup>1, ✉️</sup>**
+
+<sup>1</sup> Shanghai Jiao Tong University &nbsp;·&nbsp; <sup>2</sup> Tencent ARC Lab
+
+<!-- <sup>✉️</sup> Corresponding Author -->
+
 [![Project Page](https://img.shields.io/badge/🌐_Project_Page-Visit-6366f1?style=for-the-badge)](https://song2yu.github.io/SGT/)
 [![Paper](https://img.shields.io/badge/📄_Paper-arXiv-8b5cf6?style=for-the-badge)](https://arxiv.org/pdf/2605.18714)
 [![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-SAM--SGT_Dataset-FFD21E?style=for-the-badge)](https://huggingface.co/datasets/Two-hot/SAM-SGT)
