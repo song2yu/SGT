@@ -262,7 +262,7 @@ class EdgeDataset(DistributedIterableDataset):
                     
                     # Build sample dictionary
                     sample = dict(
-                        image_tensor_list=[vit_image_tensor, image_tensor, eidted_tensor], # 
+                        image_tensor_list=[vit_image_tensor, eidted_tensor, image_tensor], # 
                         text_ids_list=text_ids_list,
                         num_tokens=num_tokens,
                         sequence_plan=sequence_plan,
